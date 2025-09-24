@@ -40,10 +40,11 @@ jobs:
           command: yarn build
 
       - run:
-          name: Package build output
+          name: Package build output (contents only)
           command: |
             mkdir -p artifacts
-            zip -r artifacts/vite-build.zip dist
+            cd dist
+            zip -r ../artifacts/vite-build.zip .
 
       - store_artifacts:
           path: artifacts/vite-build.zip

@@ -112,15 +112,27 @@ class HoldingPage {
       return
     }
 
+    const platform = button.getAttribute('data-platform')
+
     if (!this.isDodging) {
       this.isDodging = true
+
+      // Track start of dodging period
+      this.trackEvent('Button Dodging', 'Started', platform)
+
       setTimeout(() => {
         this.isDodging = false
         this.dodgingComplete = true
         button.style.position = 'static'
         button.style.transition = 'none'
+
+        // Track end of dodging period
+        this.trackEvent('Button Dodging', 'Completed', platform)
       }, this.dodgeTimeout)
     }
+
+    // Track each dodge
+    this.trackEvent('Button Dodging', 'Dodge', platform)
 
     const maxX = window.innerWidth - button.offsetWidth - 40
     const maxY = window.innerHeight - button.offsetHeight - 40
@@ -136,12 +148,16 @@ class HoldingPage {
 
   private handleDesktopClick(platform: string): void {
     if (this.dodgingComplete) {
+      // Track social button click on desktop
+      this.trackEvent('Social Button', 'Click', `${platform} - Desktop`)
       this.modalStep = 0
       this.showModal(platform)
     }
   }
 
   private startMobileFlow(platform: string): void {
+    // Track social button tap on mobile
+    this.trackEvent('Social Button', 'Tap', `${platform} - Mobile`)
     this.modalStep = 0
     this.showModal(platform)
   }
@@ -152,6 +168,10 @@ class HoldingPage {
 
     overlay.classList.remove('hidden')
     modal.classList.remove('hidden')
+
+    // Track modal step
+    const stepNames = ['Initial', 'Second Confirmation', 'Third Warning', 'Final Decision']
+    this.trackEvent('Confirmation Modal', 'Step Shown', `${platform} - ${stepNames[this.modalStep]}`)
 
     const messages = this.getModalMessages(platform)
 
@@ -171,16 +191,20 @@ class HoldingPage {
     // Attach event listeners based on which button continues vs closes
     document.getElementById('modal-btn-1')!.addEventListener('click', () => {
       if (buttonConfig.leftButton.continuesFlow) {
+        this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
         this.handleModalYes(platform)
       } else {
+        this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
         this.closeModal()
       }
     })
 
     document.getElementById('modal-btn-2')!.addEventListener('click', () => {
       if (buttonConfig.rightButton.continuesFlow) {
+        this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
         this.handleModalYes(platform)
       } else {
+        this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
         this.closeModal()
       }
     })
@@ -327,6 +351,7 @@ class HoldingPage {
       this.modalStep++
       this.showModal(platform)
     } else {
+
       this.closeModal()
       this.navigateTo(platform)
     }
@@ -438,6 +463,10 @@ class HoldingPage {
       facebook: 'https://www.facebook.com/careym86',
       instagram: 'https://www.instagram.com/mick_carey/'
     }
+
+    // Track goal completion - user successfully navigated to social platform
+    this.trackGoal('Social Navigation Success', platform)
+
     window.open(urls[platform as keyof typeof urls], '_blank')
   }
 
@@ -473,26 +502,42 @@ class HoldingPage {
     }, 1000)
 
     ;(window as any).singAlong = () => {
+      // Track console easter egg execution
+      this.trackEvent('Console Easter Egg', 'singAlong Executed', 'Musical Performance')
       console.log(`%c🎵 Starting musical performance... 🎵`,
         'color: #ff6b9d; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);')
-      this.logAfternoonDelightLyrics()
+      this.logLyrics()
     }
   }
 
-  private logAfternoonDelightLyrics(): void {
+  private logLyrics(): void {
     const lyrics = [
-      '🎵 Gonna find my baby, gonna hold her tight',
-      '🎵 Gonna grab some afternoon delight',
-      '🎵 My motto\'s always been \'When it\'s right, it\'s right\'',
-      '🎵 Why wait until the middle of a cold dark night?',
-      '🎵 When everything\'s a little clearer in the light of day',
-      '🎵 And we know the night is always gonna be there anyway',
       '... that\'s all the singing I can do, without possibly being sued by copyright laws...'
     ]
 
     lyrics.forEach((line, index) => {
       setTimeout(() => console.log(line), index * 1000)
     })
+  }
+
+  private trackEvent(category: string, action: string, name?: string): void {
+    if (typeof window !== 'undefined' && (window as any)._paq) {
+      const eventData = ['trackEvent', category, action]
+      if (name) {
+        eventData.push(name)
+      }
+      ;(window as any)._paq.push(eventData)
+    }
+  }
+
+  private trackGoal(goalName: string, platform: string): void {
+    if (typeof window !== 'undefined' && (window as any)._paq) {
+      // Track as both an event and a goal completion
+      this.trackEvent('Goal Completion', goalName, platform)
+
+      // You can also track specific goal IDs if configured in Matomo
+      // _paq.push(['trackGoal', goalId, customRevenue]);
+    }
   }
 }
 

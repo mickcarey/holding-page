@@ -94,6 +94,9 @@ body {
   gap: 2rem;
   justify-content: center;
   flex-wrap: wrap;
+  position: absolute;
+  left: 0;
+  width: 100%;
 }
 
 .social-btn {

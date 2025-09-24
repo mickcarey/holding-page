@@ -61,7 +61,7 @@ class HoldingPage {
     document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <div class="holding-container">
         <h1 class="title">Coming Soon</h1>
-        <p class="subtitle">${randomMessage}</p>
+        <p id="subtitle" class="subtitle">${randomMessage}</p>
         <div class="social-links">
           <button id="linkedin-btn" class="social-btn" data-platform="linkedin">
             LinkedIn
@@ -104,6 +104,29 @@ class HoldingPage {
       githubBtn.addEventListener('click', () => this.handleDesktopClick('github'))
       facebookBtn.addEventListener('click', () => this.handleDesktopClick('facebook'))
       instagramBtn.addEventListener('click', () => this.handleDesktopClick('instagram'))
+    }
+  }
+
+  private removeEventListeners(): void {
+    const linkedinBtn = document.getElementById('linkedin-btn')!
+    const githubBtn = document.getElementById('github-btn')!
+    const facebookBtn = document.getElementById('facebook-btn')!
+    const instagramBtn = document.getElementById('instagram-btn')!
+
+    if (this.isMobile) {
+      linkedinBtn.removeEventListener('click', () => this.startMobileFlow('linkedin'))
+      githubBtn.removeEventListener('click', () => this.startMobileFlow('github'))
+      facebookBtn.removeEventListener('click', () => this.startMobileFlow('facebook'))
+      instagramBtn.removeEventListener('click', () => this.startMobileFlow('instagram'))
+    } else {
+      linkedinBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+      githubBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+      facebookBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+      instagramBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+      linkedinBtn.removeEventListener('click', () => this.handleDesktopClick('linkedin'))
+      githubBtn.removeEventListener('click', () => this.handleDesktopClick('github'))
+      facebookBtn.removeEventListener('click', () => this.handleDesktopClick('facebook'))
+      instagramBtn.removeEventListener('click', () => this.handleDesktopClick('instagram'))
     }
   }
 
@@ -152,6 +175,8 @@ class HoldingPage {
       this.trackEvent('Social Button', 'Click', `${platform} - Desktop`)
       this.modalStep = 0
       this.showModal(platform)
+      this.swapButtonContent()
+      this.updateSubtitle();
     }
   }
 
@@ -160,6 +185,13 @@ class HoldingPage {
     this.trackEvent('Social Button', 'Tap', `${platform} - Mobile`)
     this.modalStep = 0
     this.showModal(platform)
+    this.shuffleSocialButtons()
+    this.updateSubtitle();
+  }
+
+  private updateSubtitle(): void {
+    const subtitleEl = document.getElementById('subtitle')!
+    subtitleEl.innerText = this.getRandomCookingMessage();
   }
 
   private showModal(platform: string): void {
@@ -442,6 +474,7 @@ class HoldingPage {
     socialLinks.innerHTML = buttonHTML
 
     // Re-setup event listeners for the shuffled buttons
+    this.removeEventListeners();
     this.setupEventListeners()
   }
 
@@ -449,17 +482,6 @@ class HoldingPage {
     document.getElementById('modal-overlay')!.classList.add('hidden')
     document.getElementById('modal')!.classList.add('hidden')
     this.modalStep = 0
-
-    // Shuffle social buttons differently for desktop vs mobile
-    setTimeout(() => {
-      if (this.isMobile) {
-        // Mobile: traditional shuffle that resets positions
-        this.shuffleSocialButtons()
-      } else {
-        // Desktop: swap content/platforms while preserving visual positions
-        this.swapButtonContent()
-      }
-    }, 300) // Small delay so user doesn't notice the immediate change during modal close animation
   }
 
   private navigateTo(platform: string): void {
@@ -598,10 +620,12 @@ class HoldingPage {
 
       // Update the data attribute and text content without changing position/styling
       button.setAttribute('data-platform', newPlatform)
+      button.id = `${newPlatform}-btn`
       button.textContent = newPlatformName
     })
 
     // Re-setup event listeners with the new platform assignments
+    this.removeEventListeners();
     this.setupEventListeners()
   }
 }

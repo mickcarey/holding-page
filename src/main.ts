@@ -520,7 +520,7 @@ class HoldingPage {
     })
   }
 
-  private trackEvent(category: string, action: string, name?: string): void {
+  private trackEvent(category: string, action: string, name?: string|null|undefined): void {
     if (typeof window !== 'undefined' && (window as any)._paq) {
       const eventData = ['trackEvent', category, action]
       if (name) {

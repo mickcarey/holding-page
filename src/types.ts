@@ -7,8 +7,8 @@
  * @property {number} dodgeTimeout - After 5-10 seconds buttons remain still on desktop
  * @property {string[]} confirmationFlow - Mobile uses double-negative wording confirmations
  * @property {string} easterEgg - Desktop console has ASCII shower man easter egg
- * @property {Function} singAlong - Console command that logs "Afternoon Delight" lyrics
- * @property {string[]} socialLinks - Only LinkedIn and GitHub links/buttons
+ * @property {Function} singAlong - Console command that logs song lyrics
+ * @property {string[]} socialLinks - Social Media links/buttons
  * @property {string} designPhilosophy - Modern minimalist styling approach
  */
 export interface DeviceConfig {
@@ -24,12 +24,12 @@ export interface DeviceConfig {
 /**
  * Navigation Link Configuration
  * @interface SocialLink - Social media link structure for holding page
- * @property {string} platform - Platform name (linkedin | github)
+ * @property {string} platform - Platform name (linkedin | github | facebook | instagram)
  * @property {string} url - External URL destination
  * @property {boolean} evasive - Desktop behavior: moves away from mouse cursor
  */
 export interface SocialLink {
-  platform: 'linkedin' | 'github';
+  platform: 'linkedin' | 'github' | 'facebook' | 'instagram';
   url: string;
   evasive: boolean;
 }
@@ -55,13 +55,11 @@ export interface ModalFlow {
  * @property {string} trigger - Command name: singAlong()
  * @property {string} asciiArt - ASCII art of man caught in shower
  * @property {string} dialogue - What the man says before singing
- * @property {string} song - "Afternoon Delight" song title
  * @property {string[]} lyrics - Complete song lyrics to log
  */
 export interface ConsoleEasterEgg {
   trigger: string;
   asciiArt: string;
   dialogue: string;
-  song: string;
   lyrics: string[];
 }

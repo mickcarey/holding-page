@@ -450,12 +450,16 @@ class HoldingPage {
     document.getElementById('modal')!.classList.add('hidden')
     this.modalStep = 0
 
-    // Only shuffle social buttons on mobile - on desktop they should stay where they dodged to
-    if (this.isMobile) {
-      setTimeout(() => {
+    // Shuffle social buttons differently for desktop vs mobile
+    setTimeout(() => {
+      if (this.isMobile) {
+        // Mobile: traditional shuffle that resets positions
         this.shuffleSocialButtons()
-      }, 300) // Small delay so user doesn't notice the immediate change during modal close animation
-    }
+      } else {
+        // Desktop: swap content/platforms while preserving visual positions
+        this.swapButtonContent()
+      }
+    }, 300) // Small delay so user doesn't notice the immediate change during modal close animation
   }
 
   private navigateTo(platform: string): void {
@@ -497,15 +501,15 @@ class HoldingPage {
       console.log(`%c"Oh! I didn't see you there!"`, 'color: #ff6b6b; font-size: 16px; font-weight: bold; font-style: italic;')
       console.log(`%c"Would you like me to sing for you?"`, 'color: #4ecdc4; font-size: 14px; font-weight: normal;')
 
-      console.log(`%c💡 Type: %csingAlong()%c to start the musical performance!`,
+      console.log(`%c💡 Type: %csingForMe()%c to start the musical performance!`,
         'color: #ffd93d; font-size: 12px;',
         'color: #ff9ff3; font-size: 14px; font-weight: bold; background: #2a2a2a; padding: 2px 6px; border-radius: 3px;',
         'color: #ffd93d; font-size: 12px;')
     }, 1000)
 
-    ;(window as any).singAlong = () => {
+    ;(window as any).singForMe = () => {
       // Track console easter egg execution
-      this.trackEvent('Console Easter Egg', 'singAlong Executed', 'Musical Performance')
+      this.trackEvent('Console Easter Egg', 'singForMe Executed', 'Musical Performance')
       console.log(`%c🎵 Starting musical performance... 🎵`,
         'color: #ff6b9d; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);')
       this.logLyrics()
@@ -513,12 +517,38 @@ class HoldingPage {
   }
 
   private logLyrics(): void {
-    const lyrics = [
-      '... that\'s all the singing I can do, without possibly being sued by copyright laws...'
+    const songs = [
+        [
+          'R29ubmEgZmluZCBteSBiYWJ5LCBnb25uYSBob2xkIGhlciB0aWdodA==',
+          'R29ubmEgZ3JhYiBzb21lIGFmdGVybm9vbiBkZWxpZ2h0',
+          'TXkgbW90dG8ncyBhbHdheXMgYmVlbiAiV2hlbiBpdCdzIHJpZ2h0LCBpdCdzIHJpZ2h0Ig==',
+          'V2h5IHdhaXQgdW50aWwgdGhlIG1pZGRsZSBvZiBhIGNvbGQgZGFyayBuaWdodD8=',
+          'V2hlbiBldmVyeXRoaW5nJ3MgYSBsaXR0bGUgY2xlYXJlciBpbiB0aGUgbGlnaHQgb2YgZGF5',
+          'QW5kIHdlIGtub3cgdGhlIG5pZ2h0IGlzIGFsd2F5cyBnb25uYSBiZSB0aGVyZSBhbnl3YXk=',
+          'Li4uIHRoYXQncyBhbGwgdGhlIHNpbmdpbmcgSSBjYW4gZG8sIHdpdGhvdXQgcG9zc2libHkgYmVpbmcgc3VlZCBieSBjb3B5cmlnaHQgbGF3cy4uLm1heWJlIEkndmUgc2FpZCB0b28gbXVjaCBhbHJlYWR5Lg=='
+        ],
+        [
+          'V2hlbiB0aGUgbW9vbiBoaXRzIHlvdXIgZXll',
+          'TGlrZSBhIGJpZyBwaXp6YSBwaWUsIHRoYXQncyBhbW9yZQ==',
+          'V2hlbiB0aGUgd29ybGQgc2VlbXMgdG8gc2hpbmU=',
+          'TGlrZSB5b3UndmUgaGFkIHRvbyBtdWNoIHdpbmUsIHRoYXQncyBhbW9yZQ==',
+          'Li4uYW5kIHRoYXQncyBhcyBmYXIgYXMgSSBjYW4gZ28gYmVmb3JlIG15IGxhd3llciBzdGFydHMgY2xlYXJpbmcgdGhlaXIgdGhyb2F0Lg=='
+        ],
+        [
+          'SXQncyBidXNpbmVzcywgaXQncyBidXNpbmVzcyB0aW1l',
+          'KFlvdSBrbm93IHdoZW4gSSdtIGRvd24gdG8gbXkgc29ja3MgaXQncyB0aW1lIGZvciBidXNpbmVzcw==',
+          'VGhhdCdzIHdoeSB0aGV5IGNhbGwgaXQgYnVzaW5lc3Mgc29ja3MsIG9vaCk=',
+          'SXQncyBidXNpbmVzcywgaXQncyBidXNpbmVzcyB0aW1l',
+          'KE9oLCBvaC1vaCwgb2gtb2gtb2gsIHllYWgteWVhaCwgeWVhaC15ZWFoKQ==',
+          'Li4uaWYgSSBnbyBvbmUgbm90ZSBmdXJ0aGVyLCBJJ2xsIHByb2JhYmx5IG93ZSByb3lhbHRpZXMu'
+        ]
     ]
 
+    const songIndex = Math.floor(Math.random() * songs.length);
+    const lyrics = songs[songIndex].map(line => atob(line));
+
     lyrics.forEach((line, index) => {
-      setTimeout(() => console.log(line), index * 1000)
+      setTimeout(() => console.log('🎶 ' + line), index * 1000)
     })
   }
 
@@ -540,6 +570,39 @@ class HoldingPage {
       // You can also track specific goal IDs if configured in Matomo
       // _paq.push(['trackGoal', goalId, customRevenue]);
     }
+  }
+
+  private swapButtonContent(): void {
+    const buttons = [
+      document.getElementById('linkedin-btn')!,
+      document.getElementById('github-btn')!,
+      document.getElementById('facebook-btn')!,
+      document.getElementById('instagram-btn')!
+    ]
+
+    // Collect current platform assignments and their text content
+    const platforms = ['linkedin', 'github', 'facebook', 'instagram']
+    const platformNames = ['LinkedIn', 'GitHub', 'Facebook', 'Instagram']
+
+    // Shuffle the platforms array while keeping button positions intact
+    const shuffledPlatforms = [...platforms]
+    for (let i = shuffledPlatforms.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffledPlatforms[i], shuffledPlatforms[j]] = [shuffledPlatforms[j], shuffledPlatforms[i]]
+    }
+
+    // Apply the shuffled platforms to each button at its current position
+    buttons.forEach((button, index) => {
+      const newPlatform = shuffledPlatforms[index]
+      const newPlatformName = platformNames[platforms.indexOf(newPlatform)]
+
+      // Update the data attribute and text content without changing position/styling
+      button.setAttribute('data-platform', newPlatform)
+      button.textContent = newPlatformName
+    })
+
+    // Re-setup event listeners with the new platform assignments
+    this.setupEventListeners()
   }
 }
 

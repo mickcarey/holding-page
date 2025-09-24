@@ -3,7 +3,7 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: cimg/node:20.11  # CircleCI NodeJS image
+      - image: cimg/node:22.12   # Satisfies Vite's engine: ^20.19 || >=22.12
     working_directory: ~/project
 
 jobs:
@@ -12,7 +12,14 @@ jobs:
     steps:
       - checkout
 
-      # Cache Yarn dependencies
+      - run:
+          name: Print Node/Yarn versions
+          command: |
+            node -v
+            corepack enable || true
+            yarn -v || corepack yarn -v
+
+      # Cache Yarn deps
       - restore_cache:
           keys:
             - v1-yarn-{{ checksum "yarn.lock" }}

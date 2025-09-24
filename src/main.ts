@@ -450,10 +450,12 @@ class HoldingPage {
     document.getElementById('modal')!.classList.add('hidden')
     this.modalStep = 0
 
-    // Subtly shuffle the social buttons after closing modal
-    setTimeout(() => {
-      this.shuffleSocialButtons()
-    }, 300) // Small delay so user doesn't notice the immediate change during modal close animation
+    // Only shuffle social buttons on mobile - on desktop they should stay where they dodged to
+    if (this.isMobile) {
+      setTimeout(() => {
+        this.shuffleSocialButtons()
+      }, 300) // Small delay so user doesn't notice the immediate change during modal close animation
+    }
   }
 
   private navigateTo(platform: string): void {

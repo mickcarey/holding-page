@@ -1,0 +1,56 @@
+version: 2.1
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:22.12   # Satisfies Vite's engine: ^20.19 || >=22.12
+    working_directory: ~/project
+
+jobs:
+  build:
+    executor: node-executor
+    steps:
+      - checkout
+
+      - run:
+          name: Print Node/Yarn versions
+          command: |
+            node -v
+            corepack enable || true
+            yarn -v || corepack yarn -v
+
+      # Cache Yarn deps
+      - restore_cache:
+          keys:
+            - v1-yarn-{{ checksum "yarn.lock" }}
+            - v1-yarn-
+
+      - run:
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.cache/yarn
+          key: v1-yarn-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Build Vite project
+          command: yarn build
+
+      - run:
+          name: Package build output
+          command: |
+            mkdir -p artifacts
+            zip -r artifacts/vite-build.zip dist
+
+      - store_artifacts:
+          path: artifacts/vite-build.zip
+          destination: vite-build.zip
+
+workflows:
+  version: 2
+  build_and_package:
+    jobs:
+      - build

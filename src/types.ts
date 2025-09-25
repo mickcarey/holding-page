@@ -7,7 +7,6 @@
  * @property {number} dodgeTimeout - After 5-10 seconds buttons remain still on desktop
  * @property {string[]} confirmationFlow - Mobile uses double-negative wording confirmations
  * @property {string} easterEgg - Desktop console has ASCII shower man easter egg
- * @property {Function} singAlong - Console command that logs song lyrics
  * @property {string[]} socialLinks - Social Media links/buttons
  * @property {string} designPhilosophy - Modern minimalist styling approach
  */
@@ -47,19 +46,4 @@ export interface ModalFlow {
   secondConfirmation: string;
   finalWarning: string;
   onConfirm: () => void;
-}
-
-/**
- * Console Easter Egg Configuration
- * @interface ConsoleEasterEgg - Desktop console feature with ASCII art
- * @property {string} trigger - Command name: singAlong()
- * @property {string} asciiArt - ASCII art of man caught in shower
- * @property {string} dialogue - What the man says before singing
- * @property {string[]} lyrics - Complete song lyrics to log
- */
-export interface ConsoleEasterEgg {
-  trigger: string;
-  asciiArt: string;
-  dialogue: string;
-  lyrics: string[];
 }

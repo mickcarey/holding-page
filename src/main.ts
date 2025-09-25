@@ -534,12 +534,12 @@ class HoldingPage {
       this.trackEvent('Console Easter Egg', 'singForMe Executed', 'Musical Performance')
       console.log(`%c🎵 Starting musical performance... 🎵`,
         'color: #ff6b9d; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);')
-      this.logLyrics()
+      this.showLogs()
     }
   }
 
-  private logLyrics(): void {
-    const songs = [
+  private showLogs(): void {
+    const abc = [
         [
           'R29ubmEgZmluZCBteSBiYWJ5LCBnb25uYSBob2xkIGhlciB0aWdodA==',
           'R29ubmEgZ3JhYiBzb21lIGFmdGVybm9vbiBkZWxpZ2h0',
@@ -566,10 +566,10 @@ class HoldingPage {
         ]
     ]
 
-    const songIndex = Math.floor(Math.random() * songs.length);
-    const lyrics = songs[songIndex].map(line => atob(line));
+    const abcIndex = Math.floor(Math.random() * abc.length);
+    const xyz = abc[abcIndex].map(a => atob(a));
 
-    lyrics.forEach((line, index) => {
+    xyz.forEach((line, index) => {
       setTimeout(() => console.log('🎶 ' + line), index * 1000)
     })
   }

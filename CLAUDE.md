@@ -31,6 +31,11 @@ Interactive "coming-soon" TypeScript/Vite-based website for Michael Carey, a sof
 - `npm run build`: Build for production (includes TypeScript compilation)
 - `npm run preview`: Preview production build
 
+## Deployment
+- **Platform**: Netlify
+- **Build Command**: `yarn build`
+- **Publish Directory**: `dist`
+
 ## Future Implementation Plans
 
 ### Theme Guidelines

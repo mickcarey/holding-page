@@ -526,6 +526,7 @@ class HoldingPage {
     // Track goal completion - user successfully navigated to social platform
     this.trackGoal('Social Navigation Success', platform)
 
+    this.dodgingComplete = false;
     window.open(urls[platform as keyof typeof urls], '_blank')
   }
 

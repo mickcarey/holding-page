@@ -211,8 +211,6 @@ class HoldingPage {
       setTimeout(() => {
         this.isDodging = false
         this.dodgingComplete = true
-        button.style.position = 'static'
-        button.style.transition = 'none'
 
         // Track end of dodging period
         this.trackEvent('Button Dodging', 'Completed', platform)

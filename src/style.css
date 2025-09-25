@@ -11,18 +11,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Design System Variables - Mobile First Approach */
-  --mobile-interaction-progressive: modal-confirmations;
-  --desktop-behavior-evasive: button-mouse-dodge;
-  --desktop-console-feature: ascii-shower-easter-egg;
-  --styling-philosophy: modern-minimalist;
-  --navigation-links: linkedin-github-only;
-  --desktop-dodge-timeout: 5000ms;
-  --mobile-confirmation-layers: double-negative-wording;
-  --console-command-trigger: singAlong;
-  --easter-egg-song: afternoon-delight;
-  --device-experience-differentiation: true;
 }
 
 body {

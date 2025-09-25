@@ -124,7 +124,33 @@ class HoldingPage {
       </div>
     `
 
+    this.setInitialButtonPositioning()
     this.setupEventListeners()
+  }
+
+  private setInitialButtonPositioning(): void {
+    const socialButtons = document.querySelectorAll<HTMLButtonElement>('.social-btn')!
+
+    let left = 0;
+    socialButtons.forEach((button, index) => {
+      const rect = button.getBoundingClientRect();
+      const top  = rect.top;
+
+      let prevButtonWidth = 0;
+
+      if (index === 0) {
+        left = rect.left;
+      } else {
+        prevButtonWidth = socialButtons[index - 1].scrollWidth + 30;
+      }
+
+      left += prevButtonWidth
+
+      button.style.position = 'fixed'
+      button.style.left = `${left}px`
+      button.style.top = `${top}px`
+      button.style.transition = 'all 0.3s ease'
+    });
   }
 
   private setupEventListeners(): void {

@@ -26,41 +26,46 @@ class HoldingPage {
     ]
 
     const cookingActions = [
-      "cooking something up 👨‍🍳",
-      "brewing something special ☕",
-      "whipping up something amazing 🥄",
-      "simmering new ideas 🍲",
-      "baking fresh concepts 🍞",
-      "mixing something incredible 🥣",
-      "stirring up innovation 🥄",
-      "seasoning new projects 🧂",
-      "grilling up greatness 🔥",
-      "roasting new features ☕",
-      "fermenting brilliant ideas 🍺",
-      "marinating future plans 🥩",
-      "kneading fresh solutions 🥖",
-      "preparing something delicious 🍽️",
-      "crafting digital recipes 📝",
-      "slow-cooking perfection 🍯",
-      "blending creative flavors 🥤",
-      "steaming ahead with plans ♨️",
-      "heating up new projects 🔥",
-      "dicing up fresh ideas 🔪",
-      "whisking together innovation 🥄",
-      "caramelizing concepts 🍮",
-      "flambéing creativity 🔥",
-      "sous-vide developing ideas 🍖",
-      "pressure-cooking solutions ⏲️",
-      "barbecuing brilliant plans 🍖",
-      "sautéing fresh approaches 🍳",
-      "garnishing new features 🌿",
-      "plating up something special 🍽️",
-      "julienning innovative concepts 🔪",
-      "reducing complexity to perfection 🍷",
-      "tempering digital experiences 🌡️",
-      "poaching creative solutions 🥚",
-      "braising bold new ideas 🍲",
-      "blanching fresh possibilities 🥬"
+      "burning something (again) 👨‍🍳",
+      "brewing coffee that's probably too strong ☕",
+      "whipping up chaos in the kitchen 🥄",
+      "simmering ideas that might boil over 🍲",
+      "baking concepts that may not rise 🍞",
+      "mixing ingredients I can't pronounce 🥣",
+      "stirring trouble (and code) 🥄",
+      "over-seasoning everything 🧂",
+      "grilling something until it's crispy 🔥",
+      "roasting marshmallows instead of working ☕",
+      "fermenting ideas that smell funny 🍺",
+      "marinating in my own confusion 🥩",
+      "kneading dough like I know what I'm doing 🥖",
+      "preparing disasters that taste surprisingly good 🍽️",
+      "crafting recipes that definitely won't work 📝",
+      "slow-cooking while fast-panicking 🍯",
+      "blending things that shouldn't go together 🥤",
+      "steaming up the windows (and my glasses) ♨️",
+      "heating up leftovers from yesterday 🔥",
+      "dicing onions and crying about it 🔪",
+      "whisking frantically and hoping for the best 🥄",
+      "caramelizing sugar (and probably the pan) 🍮",
+      "flambéing my eyebrows off 🔥",
+      "sous-vide cooking with a ziplock bag 🍖",
+      "pressure-cooking anxiety 😰",
+      "barbecuing optimistically 🍖",
+      "sautéing while googling 'what is sauté' 🍳",
+      "garnishing with whatever's in the fridge 🌿",
+      "plating up something that looks... interesting 🍽️",
+      "julienning vegetables into uneven chunks 🔪",
+      "reducing wine (mostly into my glass) 🍷",
+      "tempering chocolate and my expectations 🌡️",
+      "poaching eggs that look like aliens 🥚",
+      "braising meat and my ego 🍲",
+      "blanching vegetables until they surrender 🥬",
+      "flipping pancakes (and occasionally catching them) 🥞",
+      "measuring ingredients with coffee mugs ☕",
+      "following recipes like rough suggestions 📖",
+      "improvising with whatever's not expired 🤷‍♂️",
+      "taste-testing everything (quality control) 👅"
     ]
 
     const devOpsActions = [
@@ -445,38 +450,9 @@ class HoldingPage {
   }
 
   private generateConfusingButtons(): any {
-    // Arrays of confusing button text pairs [affirmative, negative]
-    const buttonTextPairs = [
-      ['Yes', 'No'],
-      ['Confirm', 'Deny'],
-      ['Proceed', 'Cancel'],
-      ['Accept', 'Decline'],
-      ['Continue', 'Stop'],
-      ['Absolutely', 'Never'],
-      ['Of course', 'Obviously not'],
-      ['Certainly', 'Probably not'],
-      ['Agree', 'Disagree'],
-      ['Approve', 'Reject'],
-      ['Okay', 'Nope'],
-      ['Sure', 'No way'],
-      ['Yep', 'Nah'],
-      ['Affirmative', 'Negative'],
-      ['Roger that', 'I refuse'],
-      ['Let\'s go', 'Hold on'],
-      ['Why not', 'Because no'],
-      ['Fine', 'Not fine'],
-      ['I suppose', 'I doubt it'],
-      ['Seems right', 'Seems wrong'],
-      ['Makes sense', 'No sense'],
-      ['Good idea', 'Bad idea'],
-      ['Let\'s do it', 'Let\'s not'],
-      ['I\'m in', 'I\'m out'],
-      ['Count me in', 'Count me out'],
-      ['Why not?', 'Because!']
-    ]
-
-    // Randomly select button text pair
-    const textPair = buttonTextPairs[Math.floor(Math.random() * buttonTextPairs.length)]
+    // Simple Yes/No button text
+    const yesText = 'Yes'
+    const noText = 'No'
 
     // Randomly determine styling (50/50 chance to swap primary/secondary)
     const swapStyling = Math.random() < 0.5
@@ -485,12 +461,12 @@ class HoldingPage {
     const swapPositions = Math.random() < 0.5
 
     // Determine which text goes where based on position swap
-    const leftText = swapPositions ? textPair[1] : textPair[0] // negative : affirmative
-    const rightText = swapPositions ? textPair[0] : textPair[1] // affirmative : negative
+    const leftText = swapPositions ? noText : yesText // no : yes
+    const rightText = swapPositions ? yesText : noText // yes : no
 
-    // Affirmative text always continues flow, regardless of position
-    const leftContinues = swapPositions ? false : true // if swapped, left is negative (false), otherwise affirmative (true)
-    const rightContinues = swapPositions ? true : false // if swapped, right is affirmative (true), otherwise negative (false)
+    // Yes always continues flow, regardless of position
+    const leftContinues = swapPositions ? false : true // if swapped, left is no (false), otherwise yes (true)
+    const rightContinues = swapPositions ? true : false // if swapped, right is yes (true), otherwise no (false)
 
     // Determine styling classes (randomly swap primary/secondary)
     const leftClass = swapStyling ? 'primary' : 'secondary'

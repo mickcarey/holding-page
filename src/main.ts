@@ -18,45 +18,81 @@ class HoldingPage {
   }
 
   private getRandomCookingMessage(): string {
-    const cookingMessages = [
-      "Michael is cooking something up 👨‍🍳",
-      "Michael is brewing something special ☕",
-      "Michael is whipping up something amazing 🥄",
-      "Michael is simmering new ideas 🍲",
-      "Michael is baking fresh concepts 🍞",
-      "Michael is mixing something incredible 🥣",
-      "Michael is stirring up innovation 🥄",
-      "Michael is seasoning new projects 🧂",
-      "Michael is grilling up greatness 🔥",
-      "Michael is roasting new features ☕",
-      "Michael is fermenting brilliant ideas 🍺",
-      "Michael is marinating future plans 🥩",
-      "Michael is kneading fresh solutions 🥖",
-      "Michael is preparing something delicious 🍽️",
-      "Michael is crafting digital recipes 📝",
-      "Michael is slow-cooking perfection 🍯",
-      "Michael is blending creative flavors 🥤",
-      "Michael is steaming ahead with plans ♨️",
-      "Michael is heating up new projects 🔥",
-      "Michael is dicing up fresh ideas 🔪",
-      "Michael is whisking together innovation 🥄",
-      "Michael is caramelizing concepts 🍮",
-      "Michael is flambéing creativity 🔥",
-      "Michael is sous-vide developing ideas 🍖",
-      "Michael is pressure-cooking solutions ⏲️",
-      "Michael is barbecuing brilliant plans 🍖",
-      "Michael is sautéing fresh approaches 🍳",
-      "Michael is garnishing new features 🌿",
-      "Michael is plating up something special 🍽️",
-      "Michael is julienning innovative concepts 🔪",
-      "Michael is reducing complexity to perfection 🍷",
-      "Michael is tempering digital experiences 🌡️",
-      "Michael is poaching creative solutions 🥚",
-      "Michael is braising bold new ideas 🍲",
-      "Michael is blanching fresh possibilities 🥬"
+    const greetings = [
+      "Hi, I'm Michael",
+      "Hi, I'm Mike",
+      "Hi, I'm Mick",
+      "Hi, I'm MC"
     ]
 
-    return cookingMessages[Math.floor(Math.random() * cookingMessages.length)]
+    const cookingActions = [
+      "cooking something up 👨‍🍳",
+      "brewing something special ☕",
+      "whipping up something amazing 🥄",
+      "simmering new ideas 🍲",
+      "baking fresh concepts 🍞",
+      "mixing something incredible 🥣",
+      "stirring up innovation 🥄",
+      "seasoning new projects 🧂",
+      "grilling up greatness 🔥",
+      "roasting new features ☕",
+      "fermenting brilliant ideas 🍺",
+      "marinating future plans 🥩",
+      "kneading fresh solutions 🥖",
+      "preparing something delicious 🍽️",
+      "crafting digital recipes 📝",
+      "slow-cooking perfection 🍯",
+      "blending creative flavors 🥤",
+      "steaming ahead with plans ♨️",
+      "heating up new projects 🔥",
+      "dicing up fresh ideas 🔪",
+      "whisking together innovation 🥄",
+      "caramelizing concepts 🍮",
+      "flambéing creativity 🔥",
+      "sous-vide developing ideas 🍖",
+      "pressure-cooking solutions ⏲️",
+      "barbecuing brilliant plans 🍖",
+      "sautéing fresh approaches 🍳",
+      "garnishing new features 🌿",
+      "plating up something special 🍽️",
+      "julienning innovative concepts 🔪",
+      "reducing complexity to perfection 🍷",
+      "tempering digital experiences 🌡️",
+      "poaching creative solutions 🥚",
+      "braising bold new ideas 🍲",
+      "blanching fresh possibilities 🥬"
+    ]
+
+    const devOpsActions = [
+      "configuring JIRA workflows ⚙️",
+      "monitoring AWS CloudWatch metrics 📊",
+      "orchestrating Docker containers 🐳",
+      "deploying Lambda functions ⚡",
+      "setting up Confluence documentation 📝",
+      "managing Slack integrations 💬",
+      "optimizing AWS Cognito authentication 🔐",
+      "automating CI/CD pipelines 🔄",
+      "scaling Kubernetes clusters ☸️",
+      "tuning Terraform infrastructure 🏗️",
+      "debugging Elasticsearch queries 🔍",
+      "securing API Gateway endpoints 🛡️",
+      "analyzing Datadog dashboards 📈",
+      "configuring New Relic alerts 🚨",
+      "managing GitHub Actions workflows 🚀",
+      "optimizing Redis caching strategies ⚡",
+      "architecting microservices with AWS ECS 🏢",
+      "fine-tuning Jenkins build processes 🔨",
+      "implementing SonarQube code quality checks ✅",
+      "orchestrating AWS Step Functions 🪜"
+    ]
+
+    // 10% chance to use DevOps actions, 90% chance to use cooking actions
+    const useDevOps = Math.random() < 0.1
+    const actions = useDevOps ? devOpsActions : cookingActions
+    const action = actions[Math.floor(Math.random() * actions.length)]
+    const greeting = greetings[Math.floor(Math.random() * greetings.length)]
+
+    return `${greeting} and I'm ${action}`
   }
 
   private init(): void {

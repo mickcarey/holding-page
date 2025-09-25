@@ -98,10 +98,7 @@ class HoldingPage {
   private init(): void {
     const randomMessage = this.getRandomCookingMessage()
 
-    document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-      <div class="holding-container">
-        <h1 class="title">Coming Soon</h1>
-        <p id="subtitle" class="subtitle">${randomMessage}</p>
+    const socialButtonsHTML = this.isMobile ? '' : `
         <div class="social-links">
           <button id="linkedin-btn" class="social-btn" data-platform="linkedin">
             LinkedIn
@@ -115,7 +112,13 @@ class HoldingPage {
           <button id="instagram-btn" class="social-btn" data-platform="instagram">
             Instagram
           </button>
-        </div>
+        </div>`
+
+    document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+      <div class="holding-container">
+        <h1 class="title">Coming Soon</h1>
+        <p id="subtitle" class="subtitle">${randomMessage}</p>
+        ${socialButtonsHTML}
         <div id="modal-overlay" class="modal-overlay hidden"></div>
         <div id="modal" class="modal hidden"></div>
       </div>
@@ -125,49 +128,45 @@ class HoldingPage {
   }
 
   private setupEventListeners(): void {
+    // Skip event listeners for mobile since buttons don't exist
+    if (this.isMobile) {
+      return
+    }
+
     const linkedinBtn = document.getElementById('linkedin-btn')!
     const githubBtn = document.getElementById('github-btn')!
     const facebookBtn = document.getElementById('facebook-btn')!
     const instagramBtn = document.getElementById('instagram-btn')!
 
-    if (this.isMobile) {
-      linkedinBtn.addEventListener('click', () => this.startMobileFlow('linkedin'))
-      githubBtn.addEventListener('click', () => this.startMobileFlow('github'))
-      facebookBtn.addEventListener('click', () => this.startMobileFlow('facebook'))
-      instagramBtn.addEventListener('click', () => this.startMobileFlow('instagram'))
-    } else {
-      linkedinBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      githubBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      facebookBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      instagramBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      linkedinBtn.addEventListener('click', () => this.handleDesktopClick('linkedin'))
-      githubBtn.addEventListener('click', () => this.handleDesktopClick('github'))
-      facebookBtn.addEventListener('click', () => this.handleDesktopClick('facebook'))
-      instagramBtn.addEventListener('click', () => this.handleDesktopClick('instagram'))
-    }
+    linkedinBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    githubBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    facebookBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    instagramBtn.addEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    linkedinBtn.addEventListener('click', () => this.handleDesktopClick('linkedin'))
+    githubBtn.addEventListener('click', () => this.handleDesktopClick('github'))
+    facebookBtn.addEventListener('click', () => this.handleDesktopClick('facebook'))
+    instagramBtn.addEventListener('click', () => this.handleDesktopClick('instagram'))
   }
 
   private removeEventListeners(): void {
+    // Skip removing listeners for mobile since buttons don't exist
+    if (this.isMobile) {
+      return
+    }
+
     const linkedinBtn = document.getElementById('linkedin-btn')!
     const githubBtn = document.getElementById('github-btn')!
     const facebookBtn = document.getElementById('facebook-btn')!
     const instagramBtn = document.getElementById('instagram-btn')!
 
-    if (this.isMobile) {
-      linkedinBtn.removeEventListener('click', () => this.startMobileFlow('linkedin'))
-      githubBtn.removeEventListener('click', () => this.startMobileFlow('github'))
-      facebookBtn.removeEventListener('click', () => this.startMobileFlow('facebook'))
-      instagramBtn.removeEventListener('click', () => this.startMobileFlow('instagram'))
-    } else {
-      linkedinBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      githubBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      facebookBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      instagramBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
-      linkedinBtn.removeEventListener('click', () => this.handleDesktopClick('linkedin'))
-      githubBtn.removeEventListener('click', () => this.handleDesktopClick('github'))
-      facebookBtn.removeEventListener('click', () => this.handleDesktopClick('facebook'))
-      instagramBtn.removeEventListener('click', () => this.handleDesktopClick('instagram'))
-    }
+    linkedinBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    githubBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    facebookBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    instagramBtn.removeEventListener('mouseenter', (e) => this.dodgeButton(e.target as HTMLElement))
+    linkedinBtn.removeEventListener('click', () => this.handleDesktopClick('linkedin'))
+    githubBtn.removeEventListener('click', () => this.handleDesktopClick('github'))
+    facebookBtn.removeEventListener('click', () => this.handleDesktopClick('facebook'))
+    instagramBtn.removeEventListener('click', () => this.handleDesktopClick('instagram'))
   }
 
   private dodgeButton(button: HTMLElement): void {
@@ -220,14 +219,6 @@ class HoldingPage {
     }
   }
 
-  private startMobileFlow(platform: string): void {
-    // Track social button tap on mobile
-    this.trackEvent('Social Button', 'Tap', `${platform} - Mobile`)
-    this.modalStep = 0
-    this.showModal(platform)
-    this.shuffleSocialButtons()
-    this.updateSubtitle();
-  }
 
   private updateSubtitle(): void {
     const subtitleEl = document.getElementById('subtitle')!
@@ -493,30 +484,6 @@ class HoldingPage {
     }
   }
 
-  private shuffleSocialButtons(): void {
-    const socialLinks = document.querySelector('.social-links')!
-    const buttons = ['linkedin', 'github', 'facebook', 'instagram']
-
-    // Shuffle the array
-    for (let i = buttons.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[buttons[i], buttons[j]] = [buttons[j], buttons[i]]
-    }
-
-    // Rebuild the social links HTML with shuffled order
-    const buttonHTML = buttons.map(platform => {
-      const capitalizedPlatform = platform.charAt(0).toUpperCase() + platform.slice(1)
-      return `<button id="${platform}-btn" class="social-btn" data-platform="${platform}">
-            ${capitalizedPlatform}
-          </button>`
-    }).join('\n          ')
-
-    socialLinks.innerHTML = buttonHTML
-
-    // Re-setup event listeners for the shuffled buttons
-    this.removeEventListeners();
-    this.setupEventListeners()
-  }
 
   private closeModal(): void {
     document.getElementById('modal-overlay')!.classList.add('hidden')

@@ -1,11 +1,259 @@
 import './style.css'
 
+interface GestureHint {
+  type: 'text' | 'animation'
+  content: string
+  duration?: number
+  className?: string
+}
+
+interface Gesture {
+  id: string
+  name: string
+  description: string
+  hint?: GestureHint
+  requiredElement?: string
+  isCompleted: () => boolean
+  onComplete: () => void
+  cleanup?: () => void
+  setup?: () => void
+}
+
+class GestureManager {
+  private gestures: Gesture[] = []
+  private activeGesture: Gesture | null = null
+  private isModalOpen: boolean = false
+  private hintElement: HTMLElement | null = null
+  private touchStartX: number = 0
+  private touchStartY: number = 0
+  private touchStartTime: number = 0
+  private longPressTimeout: number | null = null
+  private multiTapTimeout: number | null = null
+  private tapCount: number = 0
+  private onGestureComplete: (gestureId: string) => void
+
+  constructor(onGestureComplete: (gestureId: string) => void) {
+    this.onGestureComplete = onGestureComplete
+    this.setupGlobalEventListeners()
+  }
+
+  private setupGlobalEventListeners(): void {
+    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false })
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false })
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false })
+  }
+
+  private handleTouchStart(e: TouchEvent): void {
+    if (this.isModalOpen || !this.activeGesture) return
+
+    const touch = e.touches[0]
+    this.touchStartX = touch.clientX
+    this.touchStartY = touch.clientY
+    this.touchStartTime = Date.now()
+
+    if (this.activeGesture.id === 'long-press') {
+      this.startLongPress()
+    }
+
+    if (this.activeGesture.id === 'multi-tap') {
+      this.handleMultiTap()
+    }
+  }
+
+  private handleTouchMove(e: TouchEvent): void {
+    if (this.isModalOpen || !this.activeGesture) return
+
+    const touch = e.touches[0]
+    const deltaX = touch.clientX - this.touchStartX
+    const deltaY = touch.clientY - this.touchStartY
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+    if (distance > 10 && this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout)
+      this.longPressTimeout = null
+    }
+  }
+
+  private handleTouchEnd(e: TouchEvent): void {
+    if (this.isModalOpen || !this.activeGesture) return
+
+    const touch = e.changedTouches[0]
+    const deltaX = touch.clientX - this.touchStartX
+    const deltaY = touch.clientY - this.touchStartY
+    const deltaTime = Date.now() - this.touchStartTime
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout)
+      this.longPressTimeout = null
+    }
+
+    if (this.activeGesture.id.startsWith('swipe') && distance > 50 && deltaTime < 300) {
+      this.handleSwipe(deltaX, deltaY)
+    }
+
+    if (this.activeGesture.id === 'pinch') {
+      this.handlePinch(e)
+    }
+  }
+
+  private startLongPress(): void {
+    this.longPressTimeout = window.setTimeout(() => {
+      if (this.activeGesture?.id === 'long-press' && this.activeGesture.isCompleted()) {
+        this.completeGesture()
+      }
+    }, 2000)
+  }
+
+  private handleMultiTap(): void {
+    this.tapCount++
+
+    if (this.multiTapTimeout) {
+      clearTimeout(this.multiTapTimeout)
+    }
+
+    this.multiTapTimeout = window.setTimeout(() => {
+      if (this.activeGesture?.id === 'multi-tap' && this.tapCount >= 3) {
+        this.completeGesture()
+      }
+      this.tapCount = 0
+    }, 500)
+  }
+
+  private handleSwipe(deltaX: number, deltaY: number): void {
+    const absX = Math.abs(deltaX)
+    const absY = Math.abs(deltaY)
+
+    if (absX > absY) {
+      if (deltaX > 0 && this.activeGesture?.id === 'swipe-right') {
+        this.completeGesture()
+      } else if (deltaX < 0 && this.activeGesture?.id === 'swipe-left') {
+        this.completeGesture()
+      }
+    } else {
+      if (deltaY > 0 && this.activeGesture?.id === 'swipe-down') {
+        this.completeGesture()
+      } else if (deltaY < 0 && this.activeGesture?.id === 'swipe-up') {
+        this.completeGesture()
+      }
+    }
+  }
+
+  private handlePinch(e: TouchEvent): void {
+    if (e.touches.length === 2) {
+      if (this.activeGesture?.id === 'pinch' && this.activeGesture.isCompleted()) {
+        this.completeGesture()
+      }
+    }
+  }
+
+  public addGesture(gesture: Gesture): void {
+    this.gestures.push(gesture)
+  }
+
+  public removeGesture(id: string): void {
+    const index = this.gestures.findIndex(g => g.id === id)
+    if (index !== -1) {
+      this.gestures.splice(index, 1)
+    }
+  }
+
+  public setActiveGesture(gestureId: string): void {
+    const gesture = this.gestures.find(g => g.id === gestureId)
+    if (!gesture) return
+
+    if (this.activeGesture?.cleanup) {
+      this.activeGesture.cleanup()
+    }
+
+    this.activeGesture = gesture
+
+    if (gesture.setup) {
+      gesture.setup()
+    }
+
+    this.showHint()
+  }
+
+  public setRandomActiveGesture(): void {
+    if (this.gestures.length === 0) return
+
+    const randomIndex = Math.floor(Math.random() * this.gestures.length)
+    const randomGesture = this.gestures[randomIndex]
+    this.setActiveGesture(randomGesture.id)
+  }
+
+  public setModalState(isOpen: boolean): void {
+    this.isModalOpen = isOpen
+    if (isOpen) {
+      this.hideHint()
+    } else {
+      this.showHint()
+    }
+  }
+
+  public getActiveGesture(): Gesture | null {
+    return this.activeGesture
+  }
+
+  private completeGesture(): void {
+    if (!this.activeGesture) return
+
+    this.hideHint()
+    this.activeGesture.onComplete()
+    this.onGestureComplete(this.activeGesture.id)
+  }
+
+  private showHint(): void {
+    if (!this.activeGesture?.hint || this.isModalOpen) return
+
+    this.hideHint()
+
+    this.hintElement = document.createElement('div')
+    this.hintElement.className = `gesture-hint ${this.activeGesture.hint.className || ''}`
+
+    if (this.activeGesture.hint.type === 'text') {
+      this.hintElement.textContent = this.activeGesture.hint.content
+    } else if (this.activeGesture.hint.type === 'animation') {
+      this.hintElement.innerHTML = this.activeGesture.hint.content
+    }
+
+    document.body.appendChild(this.hintElement)
+
+    if (this.activeGesture.hint.duration) {
+      setTimeout(() => {
+        this.hideHint()
+      }, this.activeGesture.hint.duration)
+    }
+  }
+
+  private hideHint(): void {
+    if (this.hintElement) {
+      this.hintElement.remove()
+      this.hintElement = null
+    }
+  }
+
+  public cleanup(): void {
+    if (this.activeGesture?.cleanup) {
+      this.activeGesture.cleanup()
+    }
+
+    this.hideHint()
+
+    document.removeEventListener('touchstart', this.handleTouchStart.bind(this))
+    document.removeEventListener('touchmove', this.handleTouchMove.bind(this))
+    document.removeEventListener('touchend', this.handleTouchEnd.bind(this))
+  }
+}
+
 class HoldingPage {
   private isMobile: boolean
   private dodgeTimeout: number = 10000
   private isDodging: boolean = false
   private dodgingComplete: boolean = false
   private modalStep: number = 0
+  private gestureManager: GestureManager | null = null
   private a = atob('c2luZ0Zvck1l')
   private b = atob('c2luZyBmb3IgeW91')
   private c = atob('bXVzaWNhbCBwZXJmb3JtYW5jZQ==')
@@ -15,6 +263,10 @@ class HoldingPage {
     this.isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     this.init()
     this.setupConsoleEasterEgg()
+
+    if (this.isMobile) {
+      this.setupGestureSystem()
+    }
   }
 
   private getRandomCookingMessage(): string {
@@ -261,6 +513,10 @@ class HoldingPage {
     overlay.classList.remove('hidden')
     modal.classList.remove('hidden')
 
+    if (this.gestureManager) {
+      this.gestureManager.setModalState(true)
+    }
+
     // Track modal step
     const stepNames = ['Initial', 'Second Confirmation', 'Third Warning', 'Final Decision']
     this.trackEvent('Confirmation Modal', 'Step Shown', `${platform} - ${stepNames[this.modalStep]}`)
@@ -488,6 +744,11 @@ class HoldingPage {
   private closeModal(): void {
     document.getElementById('modal-overlay')!.classList.add('hidden')
     document.getElementById('modal')!.classList.add('hidden')
+
+    if (this.gestureManager) {
+      this.gestureManager.setModalState(false)
+    }
+
     this.modalStep = 0
   }
 
@@ -600,6 +861,145 @@ class HoldingPage {
       // You can also track specific goal IDs if configured in Matomo
       // _paq.push(['trackGoal', goalId, customRevenue]);
     }
+  }
+
+  private setupGestureSystem(): void {
+    this.gestureManager = new GestureManager((gestureId: string) => {
+      this.onGestureCompleted(gestureId)
+    })
+
+    this.createExampleGestures()
+    this.gestureManager.setRandomActiveGesture()
+  }
+
+  private createExampleGestures(): void {
+    if (!this.gestureManager) return
+
+    const swipeUpGesture: Gesture = {
+      id: 'swipe-up',
+      name: 'Swipe Up',
+      description: 'Swipe up on the screen to reveal social links',
+      hint: {
+        type: 'animation',
+        content: '<div class="swipe-hint-arrows">↑<br>↑<br>↑</div>',
+        duration: 3000,
+        className: 'swipe-up-hint'
+      },
+      isCompleted: () => true,
+      onComplete: () => {
+        this.trackEvent('Mobile Gesture', 'Completed', 'Swipe Up')
+        this.showMobileSocialModal()
+      }
+    }
+
+    const swipeDownGesture: Gesture = {
+      id: 'swipe-down',
+      name: 'Swipe Down',
+      description: 'Swipe down to change the subtitle message',
+      hint: {
+        type: 'animation',
+        content: '<div class="swipe-hint-arrows">↓<br>↓<br>↓</div>',
+        duration: 3000,
+        className: 'swipe-down-hint'
+      },
+      isCompleted: () => true,
+      onComplete: () => {
+        this.trackEvent('Mobile Gesture', 'Completed', 'Swipe Down')
+        this.updateSubtitle()
+      }
+    }
+
+    const longPressGesture: Gesture = {
+      id: 'long-press',
+      name: 'Long Press',
+      description: 'Long press and hold the screen for 2 seconds',
+      hint: {
+        type: 'text',
+        content: 'Hold your finger on the screen for 2 seconds',
+        duration: 4000,
+        className: 'long-press-hint'
+      },
+      setup: () => {
+        const gestureCircle = document.createElement('div')
+        gestureCircle.id = 'gesture-circle'
+        gestureCircle.className = 'gesture-circle'
+        document.body.appendChild(gestureCircle)
+      },
+      cleanup: () => {
+        const gestureCircle = document.getElementById('gesture-circle')
+        if (gestureCircle) {
+          gestureCircle.remove()
+        }
+      },
+      isCompleted: () => true,
+      onComplete: () => {
+        this.trackEvent('Mobile Gesture', 'Completed', 'Long Press')
+        this.triggerEasterEgg()
+      }
+    }
+
+    const multiTapGesture: Gesture = {
+      id: 'multi-tap',
+      name: 'Triple Tap',
+      description: 'Tap the screen 3 times quickly',
+      hint: {
+        type: 'text',
+        content: 'Tap the screen 3 times quickly',
+        duration: 3000,
+        className: 'multi-tap-hint'
+      },
+      isCompleted: () => true,
+      onComplete: () => {
+        this.trackEvent('Mobile Gesture', 'Completed', 'Triple Tap')
+        this.showMobileSocialModal()
+      }
+    }
+
+    this.gestureManager.addGesture(swipeUpGesture)
+    this.gestureManager.addGesture(swipeDownGesture)
+    this.gestureManager.addGesture(longPressGesture)
+    this.gestureManager.addGesture(multiTapGesture)
+  }
+
+  private onGestureCompleted(_gestureId: string): void {
+    setTimeout(() => {
+      if (this.gestureManager) {
+        this.gestureManager.setRandomActiveGesture()
+      }
+    }, 3000)
+  }
+
+  private showMobileSocialModal(): void {
+    this.trackEvent('Mobile Social Modal', 'Opened', 'Gesture Triggered')
+
+    const socialPlatforms = [
+      { name: 'LinkedIn', url: 'https://www.linkedin.com/in/michael-carey-8b117944', platform: 'linkedin' },
+      { name: 'GitHub', url: 'https://github.com/mickcarey', platform: 'github' },
+      { name: 'Facebook', url: 'https://www.facebook.com/careym86', platform: 'facebook' },
+      { name: 'Instagram', url: 'https://www.instagram.com/mick_carey/', platform: 'instagram' }
+    ]
+
+    const randomPlatform = socialPlatforms[Math.floor(Math.random() * socialPlatforms.length)]
+
+    if (this.gestureManager) {
+      this.gestureManager.setModalState(true)
+    }
+
+    this.modalStep = 0
+    this.showModal(randomPlatform.platform)
+  }
+
+  private triggerEasterEgg(): void {
+    this.trackEvent('Mobile Gesture Easter Egg', 'Triggered', 'Long Press')
+
+    const easterEggElement = document.createElement('div')
+    easterEggElement.className = 'mobile-easter-egg'
+    easterEggElement.innerHTML = '🎉✨ You found a secret! ✨🎉'
+    document.body.appendChild(easterEggElement)
+
+    setTimeout(() => {
+      easterEggElement.remove()
+    }, 3000)
   }
 
   private swapButtonContent(): void {

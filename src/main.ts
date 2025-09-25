@@ -6,6 +6,10 @@ class HoldingPage {
   private isDodging: boolean = false
   private dodgingComplete: boolean = false
   private modalStep: number = 0
+  private a = atob('c2luZ0Zvck1l')
+  private b = atob('c2luZyBmb3IgeW91')
+  private c = atob('bXVzaWNhbCBwZXJmb3JtYW5jZQ==')
+  private d = atob('TXVzaWNhbCBQZXJmb3JtYW5jZQ==')
 
   constructor() {
     this.isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -520,19 +524,19 @@ class HoldingPage {
 
     `, 'color: #64ffda; font-size: 14px; font-family: monospace; line-height: 1.2;')
 
-      console.log(`%c"Oh! I didn't see you there!"`, 'color: #ff6b6b; font-size: 16px; font-weight: bold; font-style: italic;')
-      console.log(`%c"Would you like me to sing for you?"`, 'color: #4ecdc4; font-size: 14px; font-weight: normal;')
 
-      console.log(`%c💡 Type: %csingForMe()%c to start the musical performance!`,
+      console.log(`%c"Oh! I didn't see you there!"`, 'color: #ff6b6b; font-size: 16px; font-weight: bold; font-style: italic;')
+      console.log(`%c"Would you like me to ${this.b}?"`, 'color: #4ecdc4; font-size: 14px; font-weight: normal;')
+
+      console.log(`%c💡 Type: %c${this.a}()%c to start the ${this.c}!`,
         'color: #ffd93d; font-size: 12px;',
         'color: #ff9ff3; font-size: 14px; font-weight: bold; background: #2a2a2a; padding: 2px 6px; border-radius: 3px;',
         'color: #ffd93d; font-size: 12px;')
     }, 1000)
 
-    ;(window as any).singForMe = () => {
-      // Track console easter egg execution
-      this.trackEvent('Console Easter Egg', 'singForMe Executed', 'Musical Performance')
-      console.log(`%c🎵 Starting musical performance... 🎵`,
+    ;(window as any)[this.a] = () => {
+      this.trackEvent('Console Easter Egg', `${this.a} Executed`, `${this.d}`)
+      console.log(`%c🎵 Starting ${this.c}... 🎵`,
         'color: #ff6b9d; font-size: 18px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);')
       this.showLogs()
     }

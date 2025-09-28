@@ -56,7 +56,7 @@ body {
 .subtitle {
   font-size: 1.2rem;
   font-weight: 400;
-  margin: 0 0 3rem 0;
+  margin: 0 0 1.5rem 0;
   background: linear-gradient(-45deg, #64ffda, #ff6b9d, #4ecdc4, #ffd93d, #a8e6cf, #ffaaa5);
   background-size: 400% 400%;
   -webkit-background-clip: text;
@@ -64,6 +64,16 @@ body {
   background-clip: text;
   animation: textColorShift 12s ease infinite;
   opacity: 0.9;
+}
+
+.social-hint {
+  font-size: 0.95rem;
+  font-weight: 300;
+  margin: 0 0 2.5rem 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-style: italic;
+  letter-spacing: 0.02em;
+  animation: fadeInUp 1s ease-out 0.5s both;
 }
 
 .cooking-emoji {
@@ -256,6 +266,40 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+.lets-go-btn {
+  font-size: 1.2rem !important;
+  padding: 1rem 3rem !important;
+  background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 50%, #45b7d1 100%) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  animation: letsGoGlow 2s ease-in-out infinite alternate;
+}
+
+.lets-go-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.lets-go-btn:hover::before {
+  left: 100%;
+}
+
+.lets-go-btn:hover {
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4) !important;
+}
+
 .hidden {
   display: none !important;
 }
@@ -339,6 +383,45 @@ body {
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  10% {
+    transform: translateY(20vh) rotate(90deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(50vh) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes letsGoGlow {
+  0% {
+    box-shadow: 0 5px 20px rgba(255, 107, 157, 0.3);
+  }
+  100% {
+    box-shadow: 0 5px 30px rgba(255, 107, 157, 0.6), 0 0 20px rgba(78, 205, 196, 0.3);
   }
 }
 

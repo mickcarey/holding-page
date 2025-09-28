@@ -253,6 +253,7 @@ class HoldingPage {
   private isDodging: boolean = false
   private dodgingComplete: boolean = false
   private modalStep: number = 0
+  private step2UsesTripleNegatives: boolean = false
   private gestureManager: GestureManager | null = null
   private a = atob('c2luZ0Zvck1l')
   private b = atob('c2luZyBmb3IgeW91')
@@ -352,8 +353,46 @@ class HoldingPage {
     return `${greeting} and I'm ${action}`
   }
 
+  private getPlayfulHintMessage(): string {
+    const hintMessages = [
+      "Connect with me on social media... if you can 😏",
+      "Social links below... good luck clicking them 😉",
+      "Feel free to follow me... if you can catch the buttons 🎯",
+      "My social profiles await... patience required ⏰",
+      "Ready to connect? It might take a few tries 🎲",
+      "Social media links available... eventually 😄",
+      "Click to connect... easier said than done 🎪",
+      "Follow me on social media... persistence pays off 💪",
+      "Social profiles below... may require ninja skills 🥷",
+      "Want to connect? Hope you're quick! ⚡",
+      "Links to my socials... they're a bit shy 🙈",
+      "Connect with me... if you're up for a challenge 🏆",
+      "Social media awaits... catch them if you can 🏃",
+      "Ready to follow? Buttons might have other plans 🎭",
+      "My profiles are just a click away... sort of 🎨",
+      "Social links provided... terms and conditions apply 📜",
+      "Feel free to connect... when the buttons let you 🎰",
+      "Follow me online... it's an adventure 🗺️",
+      "Social media links... they like to play hard to get 💝",
+      "Click to connect... may the odds be in your favor 🎖️",
+      "Links below... they're feeling playful today 🎈",
+      "Want to follow? The buttons are feeling frisky 🐰",
+      "Social profiles available... after a small game 🎮",
+      "Connect with me... if you can handle the chase 🏃‍♂️",
+      "My socials await... bring your A-game 🎯",
+      "Ready to connect? Hope you like puzzles 🧩",
+      "Social links here... somewhere 🔍",
+      "Follow me... the buttons might follow you back 👀",
+      "Click to connect... it's not you, it's them 🤷",
+      "Social media links... currently playing hide and seek 🙈"
+    ]
+
+    return hintMessages[Math.floor(Math.random() * hintMessages.length)]
+  }
+
   private init(): void {
     const randomMessage = this.getRandomCookingMessage()
+    const playfulHint = !this.isMobile ? `<p class="social-hint">${this.getPlayfulHintMessage()}</p>` : ''
 
     const socialButtonsHTML = this.isMobile ? '' : `
         <div class="social-links">
@@ -375,6 +414,7 @@ class HoldingPage {
       <div class="holding-container">
         <h1 class="title">Coming Soon</h1>
         <p id="subtitle" class="subtitle">${randomMessage}</p>
+        ${playfulHint}
         ${socialButtonsHTML}
         <div id="modal-overlay" class="modal-overlay hidden"></div>
         <div id="modal" class="modal hidden"></div>
@@ -523,102 +563,173 @@ class HoldingPage {
 
     const messages = this.getModalMessages(platform)
 
-    // Generate confusing button configuration
-    const buttonConfig = this.generateConfusingButtons()
-
-    modal.innerHTML = `
-      <div class="modal-content">
-        <p>${messages[this.modalStep]}</p>
-        <div class="modal-buttons">
-          ${buttonConfig.leftButton.html}
-          ${buttonConfig.rightButton.html}
+    // For final step (modalStep 3), show single "Let's Go!" button
+    if (this.modalStep === 3) {
+      modal.innerHTML = `
+        <div class="modal-content">
+          <p>${messages[this.modalStep]}</p>
+          <div class="modal-buttons">
+            <button id="modal-final-btn" class="modal-btn primary lets-go-btn">Let's Go!</button>
+          </div>
         </div>
-      </div>
-    `
+      `
 
-    // Attach event listeners based on which button continues vs closes
-    document.getElementById('modal-btn-1')!.addEventListener('click', () => {
-      if (buttonConfig.leftButton.continuesFlow) {
-        this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
-        this.handleModalYes(platform)
-      } else {
-        this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
-        this.closeModal()
-      }
-    })
+      // Attach event listener for final button
+      document.getElementById('modal-final-btn')!.addEventListener('click', () => {
+        this.trackEvent('Confirmation Modal', 'Final Success', `${platform} - Completed`)
+        this.launchConfettiAndNavigate(platform)
+      })
+    } else {
+      // Generate confusing button configuration for other steps
+      const buttonConfig = this.generateConfusingButtons()
 
-    document.getElementById('modal-btn-2')!.addEventListener('click', () => {
-      if (buttonConfig.rightButton.continuesFlow) {
-        this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
-        this.handleModalYes(platform)
-      } else {
-        this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
-        this.closeModal()
-      }
-    })
+      modal.innerHTML = `
+        <div class="modal-content">
+          <p>${messages[this.modalStep]}</p>
+          <div class="modal-buttons">
+            ${buttonConfig.leftButton.html}
+            ${buttonConfig.rightButton.html}
+          </div>
+        </div>
+      `
+
+      // Attach event listeners based on which button continues vs closes
+      document.getElementById('modal-btn-1')!.addEventListener('click', () => {
+        if (buttonConfig.leftButton.continuesFlow) {
+          this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
+          this.handleModalYes(platform)
+        } else {
+          this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
+          this.closeModal()
+        }
+      })
+
+      document.getElementById('modal-btn-2')!.addEventListener('click', () => {
+        if (buttonConfig.rightButton.continuesFlow) {
+          this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
+          this.handleModalYes(platform)
+        } else {
+          this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
+          this.closeModal()
+        }
+      })
+    }
   }
 
   private getModalMessages(platform: string): string[] {
-    const step1Messages = [
-      `Do you want to visit my ${platform} profile?`,
-      `Ready to check out my ${platform}?`,
-      `Interested in my ${platform} page?`,
-      `Want to see my ${platform} profile?`,
-      `Curious about my ${platform}?`,
-      `Shall we head to ${platform}?`,
-      `Time to visit ${platform}?`,
-      `Ready to explore my ${platform}?`,
-      `Want to connect on ${platform}?`,
-      `Interested in my ${platform} content?`,
-      `Feel like checking out ${platform}?`,
-      `Ready to jump to ${platform}?`,
-      `Want to see what I'm up to on ${platform}?`,
-      `Shall I take you to ${platform}?`,
-      `Ready for some ${platform} action?`,
-      `Want to dive into my ${platform}?`,
-      `Interested in my ${platform} updates?`,
-      `Ready to visit my ${platform} space?`,
-      `Want to see my ${platform} posts?`,
-      `Curious about my ${platform} activity?`,
-      `Shall we go to ${platform} together?`,
-      `Ready to check my ${platform} out?`,
-      `Want to explore my ${platform} world?`,
-      `Time to see my ${platform} profile?`,
-      `Ready to discover my ${platform}?`,
-      `Want to peek at my ${platform}?`,
-      `Interested in my ${platform} journey?`,
-      `Ready to visit ${platform} with me?`,
-      `Want to see my ${platform} story?`,
-      `Shall we venture to ${platform}?`
+    const step1DesktopMessages = [
+      `Just checking you were meant to click on the ${platform} button?`,
+      `Did you mean to click ${platform}?`,
+      `You clicked on ${platform} - was that intentional?`,
+      `Was clicking ${platform} what you intended?`,
+      `Just confirming - you meant to click ${platform}?`,
+      `You clicked ${platform} - is that correct?`,
+      `Did you intend to click on ${platform}?`,
+      `Just making sure - you clicked ${platform}?`,
+      `You clicked ${platform} - was that on purpose?`,
+      `Was ${platform} the button you meant to click?`,
+      `Confirming: you intended to click ${platform}?`,
+      `Just checking - clicking ${platform} was deliberate?`,
+      `You clicked ${platform} - intentional choice?`,
+      `Was clicking ${platform} what you wanted?`,
+      `Did you purposely click on ${platform}?`,
+      `Just verifying - you meant to click ${platform}?`,
+      `${platform} was clicked - is that right?`,
+      `You clicked ${platform} - was that the plan?`,
+      `Was clicking on ${platform} deliberate?`,
+      `Just double-checking - you clicked ${platform} on purpose?`,
+      `You clicked the ${platform} button - meant to do that?`,
+      `Confirming your ${platform} click - correct?`,
+      `Was clicking ${platform} what you wanted to do?`,
+      `Just making sure - you clicked ${platform} intentionally?`,
+      `${platform} button clicked - was that intentional?`,
+      `Did you mean to click the ${platform} button?`,
+      `You clicked ${platform} - deliberate choice?`,
+      `Was clicking ${platform} your intended action?`,
+      `Just confirming you meant to click ${platform}?`,
+      `Quick check - you clicked ${platform} on purpose?`
     ]
 
-    const step2Messages = [
-      `Don't you think you shouldn't not reconsider this decision?`,
-      `Wouldn't you rather not avoid changing your mind?`,
-      `Isn't it better to not refuse to think twice about ${platform}?`,
-      `Shouldn't you not avoid reconsidering your choice?`,
-      `Don't you want to not skip questioning this decision?`,
-      `Wouldn't it be wise to not dismiss second thoughts about ${platform}?`,
-      `Isn't it smarter to not ignore doubts about this choice?`,
-      `Don't you think you shouldn't not question whether ${platform} is right?`,
-      `Wouldn't you prefer to not avoid wondering if this is correct?`,
-      `Shouldn't you not refuse to doubt this ${platform} decision?`,
-      `Don't you want to not dismiss the possibility that you shouldn't choose ${platform}?`,
-      `Isn't it better to not avoid asking yourself if ${platform} isn't the wrong choice?`,
-      `Wouldn't it be wiser to not skip considering whether you shouldn't not visit ${platform}?`,
-      `Don't you think you shouldn't not avoid wondering if this isn't the right time for ${platform}?`,
-      `Shouldn't you not refuse to question whether ${platform} isn't exactly what you don't want?`,
-      `Wouldn't you rather not dismiss the idea that you shouldn't not reconsider ${platform}?`,
-      `Isn't it smarter to not ignore the possibility that ${platform} isn't not the wrong decision?`,
-      `Don't you want to not avoid questioning whether you shouldn't not think twice about ${platform}?`,
-      `Wouldn't it be better to not skip wondering if ${platform} isn't not exactly what you don't need right now?`,
-      `Shouldn't you not refuse to consider that you might not want to not avoid rethinking ${platform}?`,
-      `Don't you think you shouldn't not dismiss the possibility that ${platform} isn't not the choice you don't want to not make?`,
-      `Wouldn't you prefer to not avoid questioning whether you shouldn't not refuse to reconsider this ${platform} decision that you don't want to not think about?`,
-      `Isn't it wiser to not ignore the chance that you might not want to not skip wondering if ${platform} isn't not the right choice you don't want to not avoid making?`,
-      `Don't you want to not refuse to question whether you shouldn't not avoid considering that ${platform} might not be what you don't want to not choose right now?`,
-      `Shouldn't you not dismiss the idea that you might not want to not avoid reconsidering whether ${platform} isn't not exactly the decision you don't want to not make at this moment?`
+    const step1MobileMessages = [
+      `Just checking you were meant to tap on the ${platform} button?`,
+      `Did you mean to tap ${platform}?`,
+      `You tapped on ${platform} - was that intentional?`,
+      `Was tapping ${platform} what you intended?`,
+      `Just confirming - you meant to tap ${platform}?`,
+      `You tapped ${platform} - is that correct?`,
+      `Did you intend to tap on ${platform}?`,
+      `Just making sure - you tapped ${platform}?`,
+      `You tapped ${platform} - was that on purpose?`,
+      `Was ${platform} the button you meant to tap?`,
+      `Confirming: you intended to tap ${platform}?`,
+      `Just checking - tapping ${platform} was deliberate?`,
+      `You tapped ${platform} - intentional choice?`,
+      `Was tapping ${platform} what you wanted?`,
+      `Did you purposely tap on ${platform}?`,
+      `Just verifying - you meant to tap ${platform}?`,
+      `${platform} was tapped - is that right?`,
+      `You tapped ${platform} - was that the plan?`,
+      `Was tapping on ${platform} deliberate?`,
+      `Just double-checking - you tapped ${platform} on purpose?`,
+      `You tapped the ${platform} button - meant to do that?`,
+      `Confirming your ${platform} tap - correct?`,
+      `Was tapping ${platform} what you wanted to do?`,
+      `Just making sure - you tapped ${platform} intentionally?`,
+      `${platform} button tapped - was that intentional?`,
+      `Did you mean to tap the ${platform} button?`,
+      `You tapped ${platform} - deliberate choice?`,
+      `Was tapping ${platform} your intended action?`,
+      `Just confirming you meant to tap ${platform}?`,
+      `Quick check - you tapped ${platform} on purpose?`
     ]
+
+    // Choose the appropriate messages based on device type
+    const step1Messages = this.isMobile ? step1MobileMessages : step1DesktopMessages
+
+    // Double negatives - Yes continues
+    const step2DoubleNegatives = [
+      `Don't you think you shouldn't reconsider this decision?`,
+      `Wouldn't you rather not change your mind?`,
+      `Isn't it better to not think twice about ${platform}?`,
+      `Shouldn't you not reconsider your choice?`,
+      `Don't you want to not question this decision?`,
+      `Wouldn't it be wise to not have second thoughts about ${platform}?`,
+      `Isn't it smarter to not have doubts about this choice?`,
+      `Don't you think you shouldn't question whether ${platform} is right?`,
+      `Wouldn't you prefer to not wonder if this is correct?`,
+      `Shouldn't you not doubt this ${platform} decision?`,
+      `Don't you want to not reconsider visiting ${platform}?`,
+      `Isn't it better to not ask yourself if ${platform} is wrong?`,
+      `Wouldn't it be wiser to not consider changing your mind?`,
+      `Don't you think you shouldn't wonder if this isn't the right time?`,
+      `Shouldn't you not question your ${platform} choice?`
+    ]
+
+    // Triple negatives - No continues
+    const step2TripleNegatives = [
+      `Don't you think you shouldn't not reconsider this decision?`,
+      `Wouldn't you rather not avoid not changing your mind?`,
+      `Isn't it better to not refuse to not think twice about ${platform}?`,
+      `Shouldn't you not avoid not reconsidering your choice?`,
+      `Don't you want to not skip not questioning this decision?`,
+      `Wouldn't it be wise to not dismiss not having second thoughts?`,
+      `Isn't it smarter to not ignore not having doubts?`,
+      `Don't you think you shouldn't not question whether ${platform} isn't right?`,
+      `Wouldn't you prefer to not avoid not wondering if this isn't correct?`,
+      `Shouldn't you not refuse to not doubt this decision?`,
+      `Don't you want to not dismiss not reconsidering ${platform}?`,
+      `Isn't it better to not avoid not asking if ${platform} isn't wrong?`,
+      `Wouldn't it be wiser to not skip not considering whether you shouldn't visit?`,
+      `Don't you think you shouldn't not avoid not wondering about this?`,
+      `Shouldn't you not refuse to not question whether ${platform} isn't what you don't want?`
+    ]
+
+    // Randomly decide whether to use double or triple negatives
+    // Store this decision for step 2 only (modal step 1)
+    if (this.modalStep === 0) {
+      this.step2UsesTripleNegatives = Math.random() < 0.5
+    }
+    const step2Messages = this.step2UsesTripleNegatives ? step2TripleNegatives : step2DoubleNegatives
 
     const step3Messages = [
       `Really? You won't reconsider staying on this amazing page?`,
@@ -654,36 +765,36 @@ class HoldingPage {
     ]
 
     const step4Messages = [
-      `Last chance! You absolutely definitely want to leave?`,
-      `Final warning! You're completely certain about abandoning this page?`,
-      `Ultimate decision time! You're 100% sure about going to ${platform}?`,
-      `This is it! You're absolutely positive about leaving?`,
-      `Final call! You're totally committed to visiting ${platform}?`,
-      `Last opportunity! You're completely decided on leaving this site?`,
-      `Ultimate choice! You're absolutely determined to go?`,
-      `Final moment! You're entirely sure about navigating away?`,
-      `This is the end! You're completely resolved to leave?`,
-      `Last stand! You're absolutely certain about going to ${platform}?`,
-      `Final crossroads! You're totally sure about abandoning this page?`,
-      `Ultimate test! You're completely convinced about leaving?`,
-      `This is your last shot! You're absolutely decided?`,
-      `Final frontier! You're entirely committed to ${platform}?`,
-      `Ultimate verdict! You're completely determined to go?`,
-      `Last hurrah! You're absolutely resolved to leave this site?`,
-      `Final chapter! You're totally convinced about navigating away?`,
-      `Ultimate conclusion! You're completely sure about going?`,
-      `This is the finale! You're absolutely certain about ${platform}?`,
-      `Last dance! You're entirely decided on leaving?`,
-      `Final curtain! You're completely committed to going away?`,
-      `Ultimate ending! You're absolutely determined to visit ${platform}?`,
-      `This is closure! You're totally resolved to leave this page?`,
-      `Final goodbye! You're completely convinced about navigating to ${platform}?`,
-      `Last farewell! You're absolutely sure about abandoning this site?`,
-      `Ultimate departure! You're entirely certain about going?`,
-      `Final exit! You're completely decided on leaving for ${platform}?`,
-      `This is the end of the road! You're absolutely committed?`,
-      `Last call for staying! You're totally determined to go to ${platform}?`,
-      `Final chance to reconsider! You're completely resolved to leave this amazing page?`
+      `Congratulations! You made it through! Ready to visit my ${platform} profile? 🎉`,
+      `Well done! Your patience is legendary! Let's head to ${platform}! 🏆`,
+      `Amazing! You persevered through all that! Time to check out my ${platform}! ⭐`,
+      `Bravo! You're officially unstoppable! Ready for ${platform}? 🎊`,
+      `Fantastic job! Hope you had some fun! Let's go to ${platform}! 🌟`,
+      `You did it! Thanks for playing along! ${platform} awaits! 🎈`,
+      `Incredible patience! You've earned this ${platform} visit! 💪`,
+      `Wonderful! Hope that was entertaining! Ready for ${platform}? 🎯`,
+      `Success! You conquered the modal maze! Time for ${platform}! 🗺️`,
+      `Outstanding! Thanks for your persistence! Let's visit ${platform}! 🚀`,
+      `Brilliant! You made it to the end! ${platform} is calling! ✨`,
+      `Excellent work! Hope you enjoyed the journey! On to ${platform}! 🎪`,
+      `You're a champion! Thanks for sticking with it! ${platform} time! 🏅`,
+      `Superb! Your determination paid off! Ready for ${platform}? 🎖️`,
+      `Perfect! Hope that brought a smile! Let's go to ${platform}! 😊`,
+      `Magnificent! You passed the test! ${platform} awaits your arrival! 🎓`,
+      `Awesome job! Thanks for being a good sport! ${platform} bound! 🎮`,
+      `Victory! You navigated the chaos beautifully! Time for ${platform}! 🏆`,
+      `Splendid! Hope you had as much fun as I did making this! ${platform} awaits! 🎨`,
+      `You made it! Thanks for your patience and humor! Let's visit ${platform}! 🎭`,
+      `Hooray! You're officially amazing! Ready to see my ${platform}? 🌈`,
+      `Well played! Your persistence is admirable! ${platform} here we come! 💫`,
+      `Congratulations! That was quite the adventure! On to ${platform}! 🗺️`,
+      `Spectacular! Thanks for playing along with my shenanigans! ${platform} time! 🎲`,
+      `You did it! Hope this made your day a bit more interesting! Let's go to ${platform}! 🎈`,
+      `Mission accomplished! You're a true explorer! ${platform} awaits! 🧭`,
+      `Wonderful! Thanks for being such a good sport! Ready for ${platform}? 🎪`,
+      `Amazing persistence! You've definitely earned this ${platform} visit! 💎`,
+      `Bravo! Hope you enjoyed this little game! Time for ${platform}! 🎯`,
+      `Success! Thanks for your patience and good humor! Let's visit ${platform}! 🎉`
     ]
 
     const randomStep1 = step1Messages[Math.floor(Math.random() * step1Messages.length)]
@@ -699,7 +810,7 @@ class HoldingPage {
       this.modalStep++
       this.showModal(platform)
     } else {
-
+      // This shouldn't be called for step 4 anymore
       this.closeModal()
       this.navigateTo(platform)
     }
@@ -720,9 +831,26 @@ class HoldingPage {
     const leftText = swapPositions ? noText : yesText // no : yes
     const rightText = swapPositions ? yesText : noText // yes : no
 
-    // Yes always continues flow, regardless of position
-    const leftContinues = swapPositions ? false : true // if swapped, left is no (false), otherwise yes (true)
-    const rightContinues = swapPositions ? true : false // if swapped, right is yes (true), otherwise no (false)
+    // For step 2 (modalStep === 1), the continue button depends on whether we're using triple negatives
+    let leftContinues: boolean
+    let rightContinues: boolean
+
+    if (this.modalStep === 1) {
+      // Step 2: Triple negatives = No continues, Double negatives = Yes continues
+      if (this.step2UsesTripleNegatives) {
+        // Triple negatives: No continues
+        leftContinues = swapPositions ? true : false // if swapped, left is no (true), otherwise yes (false)
+        rightContinues = swapPositions ? false : true // if swapped, right is yes (false), otherwise no (true)
+      } else {
+        // Double negatives: Yes continues (normal behavior)
+        leftContinues = swapPositions ? false : true // if swapped, left is no (false), otherwise yes (true)
+        rightContinues = swapPositions ? true : false // if swapped, right is yes (true), otherwise no (false)
+      }
+    } else {
+      // For all other steps, Yes always continues flow
+      leftContinues = swapPositions ? false : true // if swapped, left is no (false), otherwise yes (true)
+      rightContinues = swapPositions ? true : false // if swapped, right is yes (true), otherwise no (false)
+    }
 
     // Determine styling classes (randomly swap primary/secondary)
     const leftClass = swapStyling ? 'primary' : 'secondary'
@@ -750,6 +878,71 @@ class HoldingPage {
     }
 
     this.modalStep = 0
+  }
+
+  private launchConfettiAndNavigate(platform: string): void {
+    // Launch confetti effect
+    this.createConfettiEffect()
+
+    // Close modal first
+    this.closeModal()
+
+    // Wait 1.5 seconds then navigate
+    setTimeout(() => {
+      this.navigateTo(platform)
+    }, 1500)
+  }
+
+  private createConfettiEffect(): void {
+    const confettiContainer = document.createElement('div')
+    confettiContainer.className = 'confetti-container'
+    confettiContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    `
+    document.body.appendChild(confettiContainer)
+
+    // Create multiple confetti pieces
+    for (let i = 0; i < 150; i++) {
+      this.createConfettiPiece(confettiContainer, i)
+    }
+
+    // Remove confetti after animation
+    setTimeout(() => {
+      confettiContainer.remove()
+    }, 4000)
+  }
+
+  private createConfettiPiece(container: HTMLElement, index: number): void {
+    const confetti = document.createElement('div')
+    const colors = ['#ff6b9d', '#4ecdc4', '#45b7d1', '#96ceb4', '#fecca7', '#ff9a9e', '#a8e6cf', '#fad0c4', '#64ffda', '#ffd93d']
+    const shapes = ['◆', '●', '▲', '■', '★', '♦', '♥', '♠', '♣']
+
+    const color = colors[Math.floor(Math.random() * colors.length)]
+    const shape = shapes[Math.floor(Math.random() * shapes.length)]
+    const size = Math.random() * 15 + 10
+    const startX = Math.random() * window.innerWidth
+    const duration = Math.random() * 2000 + 2000
+    const delay = Math.random() * 1000
+
+    confetti.textContent = shape
+    confetti.style.cssText = `
+      position: absolute;
+      left: ${startX}px;
+      top: -20px;
+      color: ${color};
+      font-size: ${size}px;
+      pointer-events: none;
+      user-select: none;
+      animation: confettiFall ${duration}ms linear ${delay}ms forwards;
+    `
+
+    container.appendChild(confetti)
   }
 
   private navigateTo(platform: string): void {

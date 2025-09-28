@@ -392,7 +392,7 @@ class HoldingPage {
 
   private init(): void {
     const randomMessage = this.getRandomCookingMessage()
-    const playfulHint = !this.isMobile ? `<p class="social-hint">${this.getPlayfulHintMessage()}</p>` : ''
+    const playfulHint = !this.isMobile ? `<p class="social-hint">${this.getPlayfulHintMessage()}<br><a href="https://about.michaelcarey.com.au" target="_blank" class="about-link">Learn more about me</a></p>` : ''
 
     const socialButtonsHTML = this.isMobile ? '' : `
         <div class="social-links">
@@ -918,7 +918,7 @@ class HoldingPage {
     }, 4000)
   }
 
-  private createConfettiPiece(container: HTMLElement, index: number): void {
+  private createConfettiPiece(container: HTMLElement, _index: number): void {
     const confetti = document.createElement('div')
     const colors = ['#ff6b9d', '#4ecdc4', '#45b7d1', '#96ceb4', '#fecca7', '#ff9a9e', '#a8e6cf', '#fad0c4', '#64ffda', '#ffd93d']
     const shapes = ['◆', '●', '▲', '■', '★', '♦', '♥', '♠', '♣']

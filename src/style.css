@@ -76,6 +76,23 @@ body {
   animation: fadeInUp 1s ease-out 0.5s both;
 }
 
+.about-link {
+  color: #64ffda;
+  text-decoration: none;
+  font-weight: 400;
+  font-style: normal;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid transparent;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.about-link:hover {
+  color: #4ecdc4;
+  border-bottom-color: #4ecdc4;
+  transform: translateY(-1px);
+}
+
 .cooking-emoji {
   display: inline-block;
   margin-left: 0.5rem;

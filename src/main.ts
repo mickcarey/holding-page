@@ -392,6 +392,7 @@ class HoldingPage {
         ${captchaHtml}
         <div class="captcha-footer">
           <button id="captcha-refresh" class="captcha-refresh-btn">🔄 New Challenge</button>
+          <button id="captcha-cancel" class="captcha-cancel-btn">😫 Mister, get me out of here</button>
         </div>
       </div>
     `
@@ -402,6 +403,7 @@ class HoldingPage {
   private setupCaptchaEventListeners(platform: string): void {
     const captchaRefreshBtn = document.getElementById('captcha-refresh')
     const captchaSubmitBtn = document.getElementById('captcha-submit')
+    const captchaCancelBtn = document.getElementById('captcha-cancel')
     const captchaInput = document.getElementById('captcha-answer') as HTMLInputElement
 
     if (captchaRefreshBtn) {
@@ -411,6 +413,14 @@ class HoldingPage {
           this.statsManager.trackCaptchaRefresh(this.currentCaptcha.id)
         }
         this.showCaptcha(platform)
+      })
+    }
+
+    if (captchaCancelBtn) {
+      captchaCancelBtn.addEventListener('click', () => {
+        this.trackEvent('CAPTCHA', 'Cancel', `${platform} - ${this.currentCaptcha?.id}`)
+        this.modalStep = 0;
+        this.closeModal();
       })
     }
 

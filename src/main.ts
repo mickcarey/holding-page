@@ -19,6 +19,330 @@ interface Gesture {
   setup?: () => void
 }
 
+interface CaptchaChallenge {
+  id: string
+  type: 'button-selection' | 'math' | 'visual' | 'text-input' | 'impossible'
+  question: string
+  instruction: string
+  options?: { id: string; text: string; correct?: boolean }[]
+  correctAnswer?: string | number
+  decoy?: boolean
+  difficulty: 'simple' | 'elaborate'
+}
+
+interface CaptchaResult {
+  success: boolean
+  attempts: number
+}
+
+class CaptchaManager {
+  private currentChallenge: CaptchaChallenge | null = null
+  private attempts: number = 0
+  private maxAttempts: number = 3
+
+  constructor() {}
+
+  public generateChallenge(): CaptchaChallenge {
+    const challenges = this.getAllChallenges()
+    const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)]
+    this.currentChallenge = randomChallenge
+    this.attempts = 0
+    return randomChallenge
+  }
+
+  public validateAnswer(userAnswer: string | number): CaptchaResult {
+    this.attempts++
+
+    if (!this.currentChallenge) {
+      return { success: false, attempts: this.attempts }
+    }
+
+    let isCorrect = false
+
+    if (this.currentChallenge.type === 'impossible') {
+      isCorrect = false
+    } else if (this.currentChallenge.type === 'button-selection') {
+      const selectedOption = this.currentChallenge.options?.find(opt => opt.id === userAnswer)
+      isCorrect = selectedOption?.correct === true
+    } else {
+      isCorrect = userAnswer == this.currentChallenge.correctAnswer
+    }
+
+    return { success: isCorrect, attempts: this.attempts }
+  }
+
+  public hasAttemptsRemaining(): boolean {
+    return this.attempts < this.maxAttempts
+  }
+
+  public renderChallenge(challenge: CaptchaChallenge): string {
+    switch (challenge.type) {
+      case 'button-selection':
+        return this.renderButtonSelection(challenge)
+      case 'math':
+        return this.renderMathChallenge(challenge)
+      case 'visual':
+        return this.renderVisualChallenge(challenge)
+      case 'text-input':
+        return this.renderTextInput(challenge)
+      case 'impossible':
+        return this.renderImpossibleChallenge(challenge)
+      default:
+        return '<p>Unknown challenge type</p>'
+    }
+  }
+
+  private renderButtonSelection(challenge: CaptchaChallenge): string {
+    const optionsHtml = challenge.options?.map(option =>
+      `<button class="captcha-option-btn" data-option-id="${option.id}">${option.text}</button>`
+    ).join('') || ''
+
+    return `
+      <div class="captcha-container">
+        <p class="captcha-question">${challenge.question}</p>
+        <p class="captcha-instruction">${challenge.instruction}</p>
+        <div class="captcha-options">
+          ${optionsHtml}
+        </div>
+      </div>
+    `
+  }
+
+  private renderMathChallenge(challenge: CaptchaChallenge): string {
+    return `
+      <div class="captcha-container">
+        <p class="captcha-question">${challenge.question}</p>
+        <p class="captcha-instruction">${challenge.instruction}</p>
+        <div class="captcha-input-group">
+          <input type="text" id="captcha-answer" class="captcha-input" placeholder="Your answer">
+          <button id="captcha-submit" class="captcha-submit-btn">Submit</button>
+        </div>
+      </div>
+    `
+  }
+
+  private renderVisualChallenge(challenge: CaptchaChallenge): string {
+    return `
+      <div class="captcha-container">
+        <p class="captcha-question">${challenge.question}</p>
+        <p class="captcha-instruction">${challenge.instruction}</p>
+        <div class="captcha-input-group">
+          <input type="text" id="captcha-answer" class="captcha-input" placeholder="Your answer">
+          <button id="captcha-submit" class="captcha-submit-btn">Submit</button>
+        </div>
+      </div>
+    `
+  }
+
+  private renderTextInput(challenge: CaptchaChallenge): string {
+    return `
+      <div class="captcha-container">
+        <p class="captcha-question">${challenge.question}</p>
+        <p class="captcha-instruction">${challenge.instruction}</p>
+        <div class="captcha-input-group">
+          <input type="text" id="captcha-answer" class="captcha-input" placeholder="Type your answer">
+          <button id="captcha-submit" class="captcha-submit-btn">Submit</button>
+        </div>
+      </div>
+    `
+  }
+
+  private renderImpossibleChallenge(challenge: CaptchaChallenge): string {
+    const optionsHtml = challenge.options?.map(option =>
+      `<button class="captcha-option-btn" data-option-id="${option.id}">${option.text}</button>`
+    ).join('') || ''
+
+    return `
+      <div class="captcha-container">
+        <p class="captcha-question">${challenge.question}</p>
+        <p class="captcha-instruction">${challenge.instruction}</p>
+        <div class="captcha-options">
+          ${optionsHtml}
+        </div>
+      </div>
+    `
+  }
+
+  private getAllChallenges(): CaptchaChallenge[] {
+    return [
+      {
+        id: 'missing-button-3',
+        type: 'impossible',
+        question: 'Please click the button with the number 3 on it',
+        instruction: 'Select the correct button to continue',
+        options: [
+          { id: 'btn1', text: '1', correct: false },
+          { id: 'btn2', text: '2', correct: false },
+          { id: 'btn4', text: '4', correct: false },
+          { id: 'btn5', text: '5', correct: false }
+        ],
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'empty-boxes',
+        type: 'impossible',
+        question: 'Click on all the boxes that contain a cat',
+        instruction: 'Select all images with cats',
+        options: [
+          { id: 'box1', text: '📦', correct: false },
+          { id: 'box2', text: '📦', correct: false },
+          { id: 'box3', text: '📦', correct: false },
+          { id: 'box4', text: '📦', correct: false }
+        ],
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'paradox-math',
+        type: 'math',
+        question: 'What is 2 + 2?',
+        instruction: 'Enter the answer (Hint: It should be 5)',
+        correctAnswer: 4,
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'color-blind-test',
+        type: 'visual',
+        question: 'What color is this text? 🔴',
+        instruction: 'Type the color you see',
+        correctAnswer: 'red',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'riddle-challenge',
+        type: 'text-input',
+        question: 'I speak without a mouth and hear without ears. I have no body, but come alive with the wind. What am I?',
+        instruction: 'Type your answer (one word)',
+        correctAnswer: 'echo',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'reverse-psychology',
+        type: 'button-selection',
+        question: 'Do NOT click the red button',
+        instruction: 'Choose wisely',
+        options: [
+          { id: 'green', text: '🟢 Green Button', correct: false },
+          { id: 'blue', text: '🔵 Blue Button', correct: false },
+          { id: 'red', text: '🔴 Red Button', correct: true }
+        ],
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'moving-target',
+        type: 'impossible',
+        question: 'Click the button that says "Click Me"',
+        instruction: 'Find and click the correct button',
+        options: [
+          { id: 'btn1', text: 'Don\'t Click', correct: false },
+          { id: 'btn2', text: 'Not This One', correct: false },
+          { id: 'btn3', text: 'Definitely Not', correct: false },
+          { id: 'btn4', text: 'Wrong Choice', correct: false }
+        ],
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'timezone-confusion',
+        type: 'text-input',
+        question: 'What time is it in Sydney right now?',
+        instruction: 'Enter the current time in Sydney (format: HH:MM)',
+        correctAnswer: new Date().toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour12: false }).slice(0, 5),
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'philosophical-question',
+        type: 'text-input',
+        question: 'If a tree falls in a forest and no one is around to hear it, does it make a sound?',
+        instruction: 'Answer yes or no',
+        correctAnswer: 'yes',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'distraction-math',
+        type: 'math',
+        question: 'Don\'t solve this: What is 7 × 8?',
+        instruction: 'Enter any number except the correct answer',
+        correctAnswer: 56,
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'invisible-button',
+        type: 'impossible',
+        question: 'Click the invisible button',
+        instruction: 'It\'s there somewhere...',
+        options: [
+          { id: 'visible1', text: 'Visible Button 1', correct: false },
+          { id: 'visible2', text: 'Visible Button 2', correct: false },
+          { id: 'visible3', text: 'Visible Button 3', correct: false }
+        ],
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'emoji-count',
+        type: 'math',
+        question: 'Count the cats: 🐱🐶🐱🐭🐱🐹🐱',
+        instruction: 'Enter the number of cat emojis',
+        correctAnswer: 4,
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'follow-instructions',
+        type: 'text-input',
+        question: 'Read this carefully: Type "banana" but spell it backwards',
+        instruction: 'Follow the instructions exactly',
+        correctAnswer: 'ananab',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'simple-math',
+        type: 'math',
+        question: 'What is 3 + 5?',
+        instruction: 'Enter the answer',
+        correctAnswer: 8,
+        difficulty: 'simple'
+      },
+      {
+        id: 'simple-color',
+        type: 'button-selection',
+        question: 'Which of these is a color?',
+        instruction: 'Select the correct answer',
+        options: [
+          { id: 'car', text: 'Car', correct: false },
+          { id: 'blue', text: 'Blue', correct: true },
+          { id: 'house', text: 'House', correct: false }
+        ],
+        difficulty: 'simple'
+      },
+      {
+        id: 'simple-animal',
+        type: 'text-input',
+        question: 'What sound does a cow make?',
+        instruction: 'Type the sound',
+        correctAnswer: 'moo',
+        difficulty: 'simple'
+      },
+      {
+        id: 'simple-count',
+        type: 'math',
+        question: 'How many fingers are on one hand?',
+        instruction: 'Enter the number',
+        correctAnswer: 5,
+        difficulty: 'simple'
+      },
+      {
+        id: 'simple-yes-no',
+        type: 'button-selection',
+        question: 'Is the sky blue?',
+        instruction: 'Choose your answer',
+        options: [
+          { id: 'yes', text: 'Yes', correct: true },
+          { id: 'no', text: 'No', correct: false }
+        ],
+        difficulty: 'simple'
+      }
+    ]
+  }
+}
+
 class GestureManager {
   private gestures: Gesture[] = []
   private activeGesture: Gesture | null = null
@@ -255,6 +579,8 @@ class HoldingPage {
   private modalStep: number = 0
   private step2UsesTripleNegatives: boolean = false
   private gestureManager: GestureManager | null = null
+  private captchaManager: CaptchaManager = new CaptchaManager()
+  private currentCaptcha: CaptchaChallenge | null = null
   private a = atob('c2luZ0Zvck1l')
   private b = atob('c2luZyBmb3IgeW91')
   private c = atob('bXVzaWNhbCBwZXJmb3JtYW5jZQ==')
@@ -806,13 +1132,140 @@ class HoldingPage {
   }
 
   private handleModalYes(platform: string): void {
-    if (this.modalStep < 3) {
+    if (this.modalStep === 0) {
+      // After 1st prompt, go to 2nd prompt (double/triple negatives)
+      this.modalStep++
+      this.showModal(platform)
+    } else if (this.modalStep === 1) {
+      // After 2nd prompt, show CAPTCHA as 3rd prompt
+      this.showCaptcha(platform)
+    } else if (this.modalStep === 2) {
+      // After CAPTCHA or 3rd prompt, go to final congratulations
       this.modalStep++
       this.showModal(platform)
     } else {
-      // This shouldn't be called for step 4 anymore
+      // After final congratulations, navigate
       this.closeModal()
       this.navigateTo(platform)
+    }
+  }
+
+  private showCaptcha(platform: string): void {
+    this.currentCaptcha = this.captchaManager.generateChallenge()
+
+    this.trackEvent('CAPTCHA', 'Shown', `${platform} - ${this.currentCaptcha.id}`)
+
+    const modal = document.getElementById('modal')!
+
+    const captchaHtml = this.captchaManager.renderChallenge(this.currentCaptcha)
+
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="captcha-header">
+          <h3>Security Verification</h3>
+          <p>Please complete this CAPTCHA to continue</p>
+        </div>
+        ${captchaHtml}
+        <div class="captcha-footer">
+          <button id="captcha-refresh" class="captcha-refresh-btn">🔄 New Challenge</button>
+        </div>
+      </div>
+    `
+
+    this.setupCaptchaEventListeners(platform)
+  }
+
+  private setupCaptchaEventListeners(platform: string): void {
+    const captchaRefreshBtn = document.getElementById('captcha-refresh')
+    const captchaSubmitBtn = document.getElementById('captcha-submit')
+    const captchaInput = document.getElementById('captcha-answer') as HTMLInputElement
+
+    if (captchaRefreshBtn) {
+      captchaRefreshBtn.addEventListener('click', () => {
+        this.trackEvent('CAPTCHA', 'Refresh', `${platform} - ${this.currentCaptcha?.id}`)
+        this.showCaptcha(platform)
+      })
+    }
+
+    if (captchaSubmitBtn && captchaInput) {
+      const handleSubmit = () => {
+        const userAnswer = captchaInput.value.trim().toLowerCase()
+        this.validateCaptchaAnswer(userAnswer, platform)
+      }
+
+      captchaSubmitBtn.addEventListener('click', handleSubmit)
+      captchaInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          handleSubmit()
+        }
+      })
+    }
+
+    const captchaOptionBtns = document.querySelectorAll('.captcha-option-btn')
+    captchaOptionBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.target as HTMLButtonElement
+        const optionId = target.getAttribute('data-option-id')
+        if (optionId) {
+          this.validateCaptchaAnswer(optionId, platform)
+        }
+      })
+    })
+  }
+
+  private validateCaptchaAnswer(userAnswer: string | number, platform: string): void {
+    if (!this.currentCaptcha) return
+
+    const result = this.captchaManager.validateAnswer(userAnswer)
+
+    if (result.success) {
+      this.trackEvent('CAPTCHA', 'Success', `${platform} - ${this.currentCaptcha.id} - Attempts: ${result.attempts}`)
+      this.modalStep = 3 // Jump directly to final congratulations step
+
+      setTimeout(() => {
+        this.showModal(platform)
+      }, 500)
+    } else {
+      this.trackEvent('CAPTCHA', 'Failed', `${platform} - ${this.currentCaptcha.id} - Attempt: ${result.attempts}`)
+
+      if (this.captchaManager.hasAttemptsRemaining()) {
+        const modal = document.getElementById('modal')!
+        const errorMsg = document.createElement('div')
+        errorMsg.className = 'captcha-error'
+        errorMsg.textContent = `Incorrect. ${3 - result.attempts} attempts remaining.`
+
+        const existingError = modal.querySelector('.captcha-error')
+        if (existingError) {
+          existingError.remove()
+        }
+
+        const captchaContainer = modal.querySelector('.captcha-container')
+        if (captchaContainer) {
+          captchaContainer.insertBefore(errorMsg, captchaContainer.firstChild)
+        }
+
+        setTimeout(() => {
+          errorMsg.remove()
+        }, 3000)
+      } else {
+        this.trackEvent('CAPTCHA', 'Max Attempts Reached', `${platform} - ${this.currentCaptcha.id}`)
+
+        const modal = document.getElementById('modal')!
+        modal.innerHTML = `
+          <div class="modal-content">
+            <div class="captcha-failure">
+              <h3>CAPTCHA Failed</h3>
+              <p>Too many incorrect attempts. Don't worry, you can still continue!</p>
+              <button id="captcha-continue" class="modal-btn primary">Continue Anyway</button>
+            </div>
+          </div>
+        `
+
+        document.getElementById('captcha-continue')!.addEventListener('click', () => {
+          this.modalStep = 3 // Jump directly to final congratulations step
+          this.showModal(platform)
+        })
+      }
     }
   }
 

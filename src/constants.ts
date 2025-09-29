@@ -299,6 +299,34 @@ export const HINT_MESSAGES = [
   "Social media links... currently playing hide and seek 🙈"
 ];
 
+export const MOBILE_GESTURE_HINTS = [
+  "Gestures unlock my social profiles - they change randomly, so keep experimenting! 📱✨",
+  "Secret touch patterns reveal navigation - but the gestures switch up after each success! 🔄🗝️",
+  "Your fingers hold the key to social discovery - active gestures rotate, so stay curious! 🗝️🎲",
+  "Swipe, tap, or hold to find hidden links - gestures evolve throughout your visit! 🌊🔀",
+  "Mobile magic responds to touch - but the required gesture changes, so explore freely! 🪄🎯",
+  "Gesture-based secrets lurk beneath - they shift randomly, making each attempt unique! 👻🎭",
+  "Touch choreography reveals platforms - active gestures vary, so keep dancing with the screen! 💃🌟",
+  "The screen has hidden powers - gestures change automatically, so persistence pays off! ⚡💪",
+  "Unconventional touches unlock access - but the pattern shifts, so try different approaches! 🎯🔀",
+  "Creative finger movements work wonders - gestures rotate randomly for extra mystery! 🎨🔮",
+  "Hidden doorways await your touch - active gestures switch after success, so keep exploring! 🚪🧭",
+  "Gestural shortcuts change the game - they cycle randomly, making discovery more exciting! 🚀🎪",
+  "Touch with intention, expect surprises - gestures evolve to keep things interesting! 👆🎊",
+  "Screen responds beyond simple taps - active patterns change, so experiment boldly! 🌊🧪",
+  "Finger magic reveals social connections - gestures shift randomly for endless fun! 🤲🎰",
+  "Interactive secrets hide in plain sight - touch patterns rotate, so stay adventurous! ✨🕵️",
+  "Gesture discovery is half the fun - they change automatically to keep you guessing! 🔓🎲",
+  "Touch patterns unlock hidden pathways - active gestures vary, so embrace the challenge! 🛤️⚡",
+  "Your fingers know more than they think - gestures switch randomly, trust your instincts! 🔮💫",
+  "Mobile mysteries await your touch - patterns change after each win, so keep playing! 🎭🔄",
+  "Gestural adventures change constantly - active touches rotate, making each visit unique! 🌀🌟",
+  "Screen magic responds to creativity - gestures evolve randomly, so think outside the tap! 🎨🔀",
+  "Touch-based treasures shift and change - active patterns rotate for maximum intrigue! 💎🎪",
+  "Finger exploration reveals wonders - gestures cycle automatically, so never stop trying! 🧭✨",
+  "Interactive surprises change the rules - touch patterns evolve to keep the mystery alive! 🎊🔄"
+];
+
 export const STEP_1_DESKTOP_MESSAGES = [
   'Just checking you were meant to click on the ${platform} button?',
   'Did you mean to click ${platform}?',

@@ -1,10 +1,12 @@
 import './style.css'
+import { shuffle } from './utils.ts';
 import {
   ABC,
   COOKING_ACTIONS,
   DEV_OPS_ACTIONS,
   GREETINGS,
   HINT_MESSAGES,
+  MOBILE_GESTURE_HINTS,
   STEP_1_DESKTOP_MESSAGES,
   STEP_1_MOBILE_MESSAGES,
   STEP_2_DOUBLE_NEGATIVES,
@@ -33,6 +35,14 @@ class HoldingPage {
   private c = atob('bXVzaWNhbCBwZXJmb3JtYW5jZQ==')
   private d = atob('TXVzaWNhbCBQZXJmb3JtYW5jZQ==')
   private hasCompletedSocialInteraction: boolean = false
+  private carouselModal: HTMLElement | null = null
+  private currentSlideIndex: number = 0
+  private carouselPlatforms = shuffle([
+    { name: 'LinkedIn', platform: 'linkedin', icon: '💼', description: 'Professional networking and career updates' },
+    { name: 'GitHub', platform: 'github', icon: '🐙', description: 'Open source projects and code repositories' },
+    { name: 'Facebook', platform: 'facebook', icon: '📘', description: 'Personal updates and social connections' },
+    { name: 'Instagram', platform: 'instagram', icon: '📸', description: 'Photos, stories, and visual content' }
+  ]);
 
   constructor() {
     this.isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -42,7 +52,7 @@ class HoldingPage {
     this.hasCompletedSocialInteraction = stats.socialNavigation.overall.attempts > 0;
 
     this.init()
-    this.setupConsoleEasterEgg()
+    // this.setupConsoleEasterEgg()
 
     if (this.isMobile) {
       this.setupGestureSystem()
@@ -72,9 +82,15 @@ class HoldingPage {
     return hintMessages[Math.floor(Math.random() * hintMessages.length)]
   }
 
+  private getMobileGestureHintMessage(): string {
+    const mobileHints = MOBILE_GESTURE_HINTS;
+    return mobileHints[Math.floor(Math.random() * mobileHints.length)]
+  }
+
   private init(): void {
     const randomMessage = this.getRandomCookingMessage()
-    const playfulHint = !this.isMobile ? `<p class="social-hint">${this.getPlayfulHintMessage()}<br><a href="https://about.michaelcarey.com.au" target="_blank" class="about-link">Learn more about me</a></p>` : ''
+    const hintMessage = this.isMobile ? this.getMobileGestureHintMessage() : this.getPlayfulHintMessage()
+    const playfulHint = `<p class="social-hint">${hintMessage}<br><a href="https://about.michaelcarey.com.au" target="_blank" class="about-link">Learn more about me</a></p>`
 
     const socialButtonsHTML = this.isMobile ? '' : `
         <div class="social-links">
@@ -752,7 +768,7 @@ class HoldingPage {
       isCompleted: () => true,
       onComplete: () => {
         this.trackEvent('Mobile Gesture', 'Completed', 'Swipe Down')
-        this.updateSubtitle()
+        this.showMobileSocialModal();
       }
     }
 
@@ -781,7 +797,7 @@ class HoldingPage {
       isCompleted: () => true,
       onComplete: () => {
         this.trackEvent('Mobile Gesture', 'Completed', 'Long Press')
-        this.triggerEasterEgg()
+        this.showMobileSocialModal()
       }
     }
 
@@ -822,21 +838,11 @@ class HoldingPage {
   private showMobileSocialModal(): void {
     this.trackEvent('Mobile Social Modal', 'Opened', 'Gesture Triggered')
 
-    const socialPlatforms = [
-      { name: 'LinkedIn', url: 'https://www.linkedin.com/in/michael-carey-8b117944', platform: 'linkedin' },
-      { name: 'GitHub', url: 'https://github.com/mickcarey', platform: 'github' },
-      { name: 'Facebook', url: 'https://www.facebook.com/careym86', platform: 'facebook' },
-      { name: 'Instagram', url: 'https://www.instagram.com/mick_carey/', platform: 'instagram' }
-    ]
-
-    const randomPlatform = socialPlatforms[Math.floor(Math.random() * socialPlatforms.length)]
-
     if (this.gestureManager) {
       this.gestureManager.setModalState(true)
     }
 
-    this.modalStep = 0
-    this.showModal(randomPlatform.platform)
+    this.showCarouselModal()
   }
 
   private triggerEasterEgg(): void {
@@ -1204,6 +1210,171 @@ class HoldingPage {
       overlay.addEventListener('click', () => {
         this.closeModal()
       })
+    }
+  }
+
+  private showCarouselModal(): void {
+    this.currentSlideIndex = 0
+
+    this.carouselModal = document.createElement('div')
+    this.carouselModal.className = 'mobile-social-carousel'
+
+    this.carouselModal.innerHTML = `
+      <div class="carousel-header">
+        <h2 class="carousel-title">Choose Your Platform</h2>
+        <button class="carousel-close">×</button>
+      </div>
+
+      <div class="carousel-container">
+        <div class="carousel-track" id="carousel-track">
+          ${this.carouselPlatforms.map((platform, index) => `
+            <div class="carousel-slide ${index === 0 ? 'active' : ''}" data-platform="${platform.platform}">
+              <div class="platform-icon ${platform.platform}">${platform.icon}</div>
+              <div class="platform-name">${platform.name}</div>
+              <div class="platform-description">${platform.description}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="carousel-navigation">
+          ${this.carouselPlatforms.map((_, index) => `
+            <div class="nav-dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="carousel-footer">
+        <button class="view-profile-btn" id="view-profile-btn">View Profile</button>
+      </div>
+    `
+
+    document.body.appendChild(this.carouselModal)
+
+    setTimeout(() => {
+      this.carouselModal!.classList.add('active')
+    }, 100)
+
+    this.setupCarouselEventListeners()
+  }
+
+  private setupCarouselEventListeners(): void {
+    if (!this.carouselModal) return
+
+    const closeBtn = this.carouselModal.querySelector('.carousel-close')
+    const viewProfileBtn = this.carouselModal.querySelector('#view-profile-btn')
+    const navDots = this.carouselModal.querySelectorAll('.nav-dot')
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.closeCarouselModal()
+      })
+    }
+
+    if (viewProfileBtn) {
+      viewProfileBtn.addEventListener('click', () => {
+        const currentPlatform = this.carouselPlatforms[this.currentSlideIndex]
+        this.trackEvent('Mobile Carousel', 'View Profile Clicked', currentPlatform.platform)
+        this.statsManager.trackSocialNavigationAttempt(currentPlatform.platform)
+
+        this.closeCarouselModal();
+
+        setTimeout(() => {
+          this.modalStep = 0
+          this.showModal(currentPlatform.platform)
+        }, 500)
+      })
+    }
+
+    navDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        this.goToSlide(index)
+      })
+    })
+
+    let startX = 0
+    let currentX = 0
+    let isDragging = false
+
+    const carouselTrack = this.carouselModal.querySelector('#carousel-track') as HTMLElement
+
+    if (carouselTrack) {
+      carouselTrack.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX
+        isDragging = true
+      })
+
+      carouselTrack.addEventListener('touchmove', (e) => {
+        if (!isDragging) return
+        currentX = e.touches[0].clientX
+      })
+
+      carouselTrack.addEventListener('touchend', () => {
+        if (!isDragging) return
+        isDragging = false
+
+        const diffX = startX - currentX
+        const threshold = 50
+
+        if (Math.abs(diffX) > threshold) {
+          if (diffX > 0 && this.currentSlideIndex < this.carouselPlatforms.length - 1) {
+            this.goToSlide(this.currentSlideIndex + 1)
+          } else if (diffX < 0 && this.currentSlideIndex > 0) {
+            this.goToSlide(this.currentSlideIndex - 1)
+          }
+        }
+      })
+    }
+  }
+
+  private goToSlide(index: number): void {
+    if (index < 0 || index >= this.carouselPlatforms.length) return
+
+    this.currentSlideIndex = index
+    this.updateCarouselDisplay()
+
+    const platform = this.carouselPlatforms[index]
+    this.trackEvent('Mobile Carousel', 'Slide Changed', `${platform.platform} - Slide ${index}`)
+  }
+
+  private updateCarouselDisplay(): void {
+    if (!this.carouselModal) return
+
+    const track = this.carouselModal.querySelector('#carousel-track') as HTMLElement
+    const slides = this.carouselModal.querySelectorAll('.carousel-slide')
+    const dots = this.carouselModal.querySelectorAll('.nav-dot')
+
+    if (track) {
+      console.log(track);
+      const offset = -this.currentSlideIndex * window.innerWidth;
+      track.style.transform = `translateX(${offset}px)`
+    }
+
+    slides.forEach((slide, index) => {
+      slide.classList.toggle('active', index === this.currentSlideIndex)
+    })
+
+    dots.forEach((dot, index) => {
+      dot.classList.toggle('active', index === this.currentSlideIndex)
+    })
+  }
+
+  private closeCarouselModal(): void {
+    if (!this.carouselModal) return
+
+    this.trackEvent('Mobile Carousel', 'Closed', 'User Action')
+
+    this.carouselModal.classList.remove('active')
+
+    setTimeout(() => {
+      if (this.carouselModal) {
+        this.carouselModal.remove()
+        this.carouselModal = null
+        this.carouselPlatforms = shuffle(this.carouselPlatforms);
+      }
+    }, 500)
+
+    if (this.gestureManager) {
+      this.gestureManager.setModalState(false)
     }
   }
 }

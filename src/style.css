@@ -1077,6 +1077,297 @@ body {
   }
 }
 
+/* Mobile Social Carousel Modal */
+.mobile-social-carousel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #533483);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.mobile-social-carousel.active {
+  transform: translateY(0);
+}
+
+.carousel-header {
+  position: relative;
+  padding: 1.5rem 2rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carousel-title {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0;
+  background: linear-gradient(-45deg, #64ffda, #ff6b9d, #4ecdc4);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textColorShift 8s ease infinite;
+}
+
+.carousel-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1) rotate(90deg);
+}
+
+.carousel-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 400vw;
+  height: 100%;
+  position: absolute;
+  left: 0;
+}
+
+.carousel-slide {
+  width: 100vw;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all 0.4s ease;
+  opacity: 1;
+}
+
+.platform-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(20px);
+  transition: all 0.4s ease;
+  animation: platformFloat 3s ease-in-out infinite;
+}
+
+.platform-icon.linkedin {
+  color: #0077b5;
+  border-color: rgba(0, 119, 181, 0.4);
+  background: linear-gradient(135deg, rgba(0, 119, 181, 0.2), rgba(0, 119, 181, 0.1));
+}
+
+.platform-icon.github {
+  color: #333;
+  border-color: rgba(51, 51, 51, 0.4);
+  background: linear-gradient(135deg, rgba(51, 51, 51, 0.2), rgba(51, 51, 51, 0.1));
+}
+
+.platform-icon.facebook {
+  color: #1877f2;
+  border-color: rgba(24, 119, 242, 0.4);
+  background: linear-gradient(135deg, rgba(24, 119, 242, 0.2), rgba(24, 119, 242, 0.1));
+}
+
+.platform-icon.instagram {
+  color: #e4405f;
+  border-color: rgba(228, 64, 95, 0.4);
+  background: linear-gradient(135deg, rgba(228, 64, 95, 0.2), rgba(228, 64, 95, 0.1));
+}
+
+.carousel-slide.active .platform-icon {
+  transform: scale(1.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.platform-name {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  background: linear-gradient(-45deg, #64ffda, #ff6b9d, #4ecdc4);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textColorShift 8s ease infinite;
+}
+
+.platform-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  max-width: 300px;
+}
+
+.carousel-navigation {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-dot.active {
+  background: #64ffda;
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(100, 255, 218, 0.5);
+}
+
+.carousel-footer {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-profile-btn {
+  background: linear-gradient(135deg, #ff6b9d 0%, #4ecdc4 50%, #45b7d1 100%);
+  border: none;
+  color: #ffffff;
+  padding: 1.2rem 3rem;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 25px rgba(255, 107, 157, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.view-profile-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.6s;
+}
+
+.view-profile-btn:hover::before {
+  left: 100%;
+}
+
+.view-profile-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(255, 107, 157, 0.5);
+}
+
+.view-profile-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes platformFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Mobile optimizations for carousel */
+@media (max-width: 767px) {
+  .carousel-header {
+    padding: 1rem 1.5rem 0.8rem;
+  }
+
+  .carousel-title {
+    font-size: 1.2rem;
+  }
+
+  .carousel-close {
+    width: 35px;
+    height: 35px;
+    font-size: 18px;
+  }
+
+  .platform-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 40px;
+    margin-bottom: 1.5rem;
+  }
+
+  .platform-name {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .platform-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    max-width: 280px;
+  }
+
+  .carousel-navigation {
+    bottom: 20px;
+  }
+
+  .view-profile-btn {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+  }
+
+  .carousel-footer {
+    padding: 1.5rem;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

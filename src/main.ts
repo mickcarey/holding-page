@@ -785,10 +785,10 @@ class HoldingPage {
     const longPressGesture: Gesture = {
       id: 'long-press',
       name: 'Long Press',
-      description: 'Long press and hold the screen for 2 seconds',
+      description: 'Long press and hold the screen',
       hint: {
         type: 'text',
-        content: 'Hold your finger on the screen for 2 seconds',
+        content: 'Press and hold the circle on the screen',
         duration: 4000,
         className: 'long-press-hint'
       },
@@ -797,11 +797,52 @@ class HoldingPage {
         gestureCircle.id = 'gesture-circle'
         gestureCircle.className = 'gesture-circle'
         document.body.appendChild(gestureCircle)
+
+        const progressBar = document.createElement('div')
+        progressBar.id = 'long-press-progress'
+        progressBar.className = 'long-press-progress'
+        progressBar.innerHTML = '<div class="progress-fill"></div>'
+        document.body.appendChild(progressBar)
+
+        const handleTouchStart = () => {
+          gestureCircle.classList.add('pressing')
+          progressBar.classList.add('active')
+        }
+
+        const handleTouchEnd = () => {
+          gestureCircle.classList.remove('pressing')
+          progressBar.classList.remove('active')
+        }
+
+        document.addEventListener('touchstart', handleTouchStart)
+        document.addEventListener('touchend', handleTouchEnd)
+        document.addEventListener('touchcancel', handleTouchEnd)
+
+        ;(gestureCircle as any).handleTouchStart = handleTouchStart
+        ;(gestureCircle as any).handleTouchEnd = handleTouchEnd
+        ;(progressBar as any).element = progressBar
       },
       cleanup: () => {
         const gestureCircle = document.getElementById('gesture-circle')
+        const progressBar = document.getElementById('long-press-progress')
+
         if (gestureCircle) {
+          const handleTouchStart = (gestureCircle as any).handleTouchStart
+          const handleTouchEnd = (gestureCircle as any).handleTouchEnd
+
+          if (handleTouchStart) {
+            document.removeEventListener('touchstart', handleTouchStart)
+          }
+          if (handleTouchEnd) {
+            document.removeEventListener('touchend', handleTouchEnd)
+            document.removeEventListener('touchcancel', handleTouchEnd)
+          }
+
           gestureCircle.remove()
+        }
+
+        if (progressBar) {
+          progressBar.remove()
         }
       },
       isCompleted: () => true,
@@ -852,7 +893,11 @@ class HoldingPage {
       this.gestureManager.setModalState(true)
     }
 
-    this.showCarouselModal()
+    this.showCarouselModal();
+
+    setTimeout(() => {
+      this.updateSubtitle();
+    }, 1000);
   }
 
   private swapButtonContent(): void {

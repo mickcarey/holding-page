@@ -22,6 +22,8 @@ export class GestureManager {
     document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false })
     document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false })
     document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false })
+    document.addEventListener('touchcancel', this.handleTouchCancel.bind(this), { passive: false })
+    document.addEventListener('contextmenu', this.handleContextMenu.bind(this), { passive: false })
   }
 
   private handleTouchStart(e: TouchEvent): void {
@@ -33,6 +35,7 @@ export class GestureManager {
     this.touchStartTime = Date.now()
 
     if (this.activeGesture.id === 'long-press') {
+      e.preventDefault()
       this.startLongPress()
     }
 
@@ -78,9 +81,27 @@ export class GestureManager {
     }
   }
 
+  private handleTouchCancel(_e: TouchEvent): void {
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout)
+      this.longPressTimeout = null
+    }
+    if (this.multiTapTimeout) {
+      clearTimeout(this.multiTapTimeout)
+      this.multiTapTimeout = null
+      this.tapCount = 0
+    }
+  }
+
+  private handleContextMenu(e: Event): void {
+    if (this.activeGesture?.id === 'long-press' && !this.isModalOpen) {
+      e.preventDefault()
+    }
+  }
+
   private startLongPress(): void {
     this.longPressTimeout = window.setTimeout(() => {
-      if (this.activeGesture?.id === 'long-press' && this.activeGesture.isCompleted()) {
+      if (this.activeGesture?.id === 'long-press') {
         this.completeGesture()
       }
     }, 2000)
@@ -222,8 +243,20 @@ export class GestureManager {
 
     this.hideHint()
 
+    if (this.longPressTimeout) {
+      clearTimeout(this.longPressTimeout)
+      this.longPressTimeout = null
+    }
+
+    if (this.multiTapTimeout) {
+      clearTimeout(this.multiTapTimeout)
+      this.multiTapTimeout = null
+    }
+
     document.removeEventListener('touchstart', this.handleTouchStart.bind(this))
     document.removeEventListener('touchmove', this.handleTouchMove.bind(this))
     document.removeEventListener('touchend', this.handleTouchEnd.bind(this))
+    document.removeEventListener('touchcancel', this.handleTouchCancel.bind(this))
+    document.removeEventListener('contextmenu', this.handleContextMenu.bind(this))
   }
 }

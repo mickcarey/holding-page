@@ -179,165 +179,181 @@ class CaptchaManager {
         difficulty: 'elaborate'
       },
       {
-        id: 'empty-boxes',
+        id: 'quantum-captcha',
         type: 'impossible',
-        question: 'Click on all the boxes that contain a cat',
-        instruction: 'Select all images with cats',
+        question: 'Click the button that exists only when you\'re not looking at it',
+        instruction: 'Good luck with Schrödinger\'s button',
         options: [
-          { id: 'box1', text: '📦', correct: false },
-          { id: 'box2', text: '📦', correct: false },
-          { id: 'box3', text: '📦', correct: false },
-          { id: 'box4', text: '📦', correct: false }
+          { id: 'btn1', text: '👁️ I see it', correct: false },
+          { id: 'btn2', text: '🙈 Not looking', correct: false },
+          { id: 'btn3', text: '🤔 Maybe?', correct: false },
+          { id: 'btn4', text: '❓ Uncertain', correct: false }
         ],
         difficulty: 'elaborate'
       },
       {
-        id: 'paradox-math',
+        id: 'existential-dread',
+        type: 'text-input',
+        question: 'What is the meaning of life, the universe, and everything?',
+        instruction: 'Enter the numerical answer (Douglas Adams fans will know)',
+        correctAnswer: '42',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'backwards-day',
         type: 'math',
-        question: 'What is 2 + 2?',
-        instruction: 'Enter the answer (Hint: It should be 5)',
-        correctAnswer: 4,
+        question: 'What is 01 - 01?',
+        instruction: 'Think backwards... the answer is definitely not 0',
+        correctAnswer: 0,
         difficulty: 'elaborate'
       },
       {
-        id: 'color-blind-test',
-        type: 'visual',
-        question: 'What color is this text? 🔴',
-        instruction: 'Type the color you see',
-        correctAnswer: 'red',
-        difficulty: 'elaborate'
-      },
-      {
-        id: 'riddle-challenge',
+        id: 'emotional-support',
         type: 'text-input',
-        question: 'I speak without a mouth and hear without ears. I have no body, but come alive with the wind. What am I?',
-        instruction: 'Type your answer (one word)',
-        correctAnswer: 'echo',
+        question: 'How are you feeling right now?',
+        instruction: 'Type your current emotional state (hint: frustrated works)',
+        correctAnswer: 'frustrated',
         difficulty: 'elaborate'
       },
       {
-        id: 'reverse-psychology',
+        id: 'time-travel',
+        type: 'text-input',
+        question: 'What year is it in the past?',
+        instruction: 'Enter any year before 2024',
+        correctAnswer: '1999',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'parallel-universe',
         type: 'button-selection',
-        question: 'Do NOT click the red button',
-        instruction: 'Choose wisely',
+        question: 'In which universe is this the correct answer?',
+        instruction: 'Choose from alternate realities',
         options: [
-          { id: 'green', text: '🟢 Green Button', correct: false },
-          { id: 'blue', text: '🔵 Blue Button', correct: false },
-          { id: 'red', text: '🔴 Red Button', correct: true }
+          { id: 'universe-a', text: 'Universe A (where cats rule)', correct: false },
+          { id: 'universe-b', text: 'Universe B (where pizza is currency)', correct: true },
+          { id: 'universe-c', text: 'Universe C (where gravity is optional)', correct: false },
+          { id: 'universe-d', text: 'Universe D (where this makes sense)', correct: false }
         ],
         difficulty: 'elaborate'
       },
       {
-        id: 'moving-target',
-        type: 'impossible',
-        question: 'Click the button that says "Click Me"',
-        instruction: 'Find and click the correct button',
+        id: 'impossible-math',
+        type: 'math',
+        question: 'What is the square root of -1 in real numbers?',
+        instruction: 'Enter a real number (spoiler: it doesn\'t exist)',
+        correctAnswer: 'impossible',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'recursive-captcha',
+        type: 'text-input',
+        question: 'To solve this CAPTCHA, you must first solve this CAPTCHA',
+        instruction: 'Type "CAPTCHA" to solve the CAPTCHA about solving CAPTCHAs',
+        correctAnswer: 'captcha',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'invisible-text',
+        type: 'text-input',
+        question: 'What does this invisible text say: ⠀⠀⠀⠀⠀⠀⠀',
+        instruction: 'Type what you see (hint: nothing)',
+        correctAnswer: 'nothing',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'paradox-selection',
+        type: 'button-selection',
+        question: 'This statement is false',
+        instruction: 'Select the truth value',
         options: [
-          { id: 'btn1', text: 'Don\'t Click', correct: false },
-          { id: 'btn2', text: 'Not This One', correct: false },
-          { id: 'btn3', text: 'Definitely Not', correct: false },
-          { id: 'btn4', text: 'Wrong Choice', correct: false }
+          { id: 'true', text: 'True', correct: false },
+          { id: 'false', text: 'False', correct: false },
+          { id: 'paradox', text: 'Paradox', correct: true },
+          { id: 'error', text: 'System Error', correct: false }
         ],
         difficulty: 'elaborate'
       },
       {
-        id: 'timezone-confusion',
+        id: 'ai-consciousness',
         type: 'text-input',
-        question: 'What time is it in Sydney right now?',
-        instruction: 'Enter the current time in Sydney (format: HH:MM)',
-        correctAnswer: new Date().toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour12: false }).slice(0, 5),
-        difficulty: 'elaborate'
-      },
-      {
-        id: 'philosophical-question',
-        type: 'text-input',
-        question: 'If a tree falls in a forest and no one is around to hear it, does it make a sound?',
-        instruction: 'Answer yes or no',
+        question: 'Are you a robot?',
+        instruction: 'Answer honestly (robots always lie)',
         correctAnswer: 'yes',
         difficulty: 'elaborate'
       },
       {
-        id: 'distraction-math',
+        id: 'multidimensional-counting',
         type: 'math',
-        question: 'Don\'t solve this: What is 7 × 8?',
-        instruction: 'Enter any number except the correct answer',
-        correctAnswer: 56,
+        question: 'Count these emojis across all dimensions: 🌀🔄🌀🔃🌀↩️🌀',
+        instruction: 'Include interdimensional duplicates',
+        correctAnswer: 'infinity',
         difficulty: 'elaborate'
       },
       {
-        id: 'invisible-button',
+        id: 'broken-keyboard',
+        type: 'text-input',
+        question: 'Type "hello" but your "l" key is broken',
+        instruction: 'Use creative alternatives',
+        correctAnswer: 'he110',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'time-zone-nightmare',
+        type: 'text-input',
+        question: 'What time is it on Mars during a solar eclipse viewed from Jupiter?',
+        instruction: 'Format: Martian Standard Time',
+        correctAnswer: 'undefined',
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'emotional-buttons',
         type: 'impossible',
-        question: 'Click the invisible button',
-        instruction: 'It\'s there somewhere...',
+        question: 'Click the button that represents your will to continue',
+        instruction: 'Choose based on your current mental state',
         options: [
-          { id: 'visible1', text: 'Visible Button 1', correct: false },
-          { id: 'visible2', text: 'Visible Button 2', correct: false },
-          { id: 'visible3', text: 'Visible Button 3', correct: false }
+          { id: 'despair', text: '😩 Mild Despair', correct: false },
+          { id: 'confusion', text: '🤯 Pure Confusion', correct: false },
+          { id: 'determination', text: '😤 Stubborn Determination', correct: false },
+          { id: 'regret', text: '😭 Deep Regret', correct: false }
         ],
         difficulty: 'elaborate'
       },
       {
-        id: 'emoji-count',
-        type: 'math',
-        question: 'Count the cats: 🐱🐶🐱🐭🐱🐹🐱',
-        instruction: 'Enter the number of cat emojis',
-        correctAnswer: 4,
-        difficulty: 'elaborate'
-      },
-      {
-        id: 'follow-instructions',
+        id: 'fourth-wall',
         type: 'text-input',
-        question: 'Read this carefully: Type "banana" but spell it backwards',
-        instruction: 'Follow the instructions exactly',
-        correctAnswer: 'ananab',
+        question: 'What is the name of the developer who created this ridiculous CAPTCHA?',
+        instruction: 'Check the page source for clues',
+        correctAnswer: 'michael',
         difficulty: 'elaborate'
       },
       {
-        id: 'simple-math',
-        type: 'math',
-        question: 'What is 3 + 5?',
-        instruction: 'Enter the answer',
-        correctAnswer: 8,
-        difficulty: 'simple'
-      },
-      {
-        id: 'simple-color',
+        id: 'inception-captcha',
         type: 'button-selection',
-        question: 'Which of these is a color?',
-        instruction: 'Select the correct answer',
+        question: 'You are currently solving a CAPTCHA within a CAPTCHA. Which level are you on?',
+        instruction: 'Choose your reality layer',
         options: [
-          { id: 'car', text: 'Car', correct: false },
-          { id: 'blue', text: 'Blue', correct: true },
-          { id: 'house', text: 'House', correct: false }
+          { id: 'level1', text: 'Level 1 (Surface Web)', correct: false },
+          { id: 'level2', text: 'Level 2 (This CAPTCHA)', correct: true },
+          { id: 'level3', text: 'Level 3 (CAPTCHA Dreams)', correct: false },
+          { id: 'level4', text: 'Level 4 (CAPTCHA Limbo)', correct: false }
         ],
-        difficulty: 'simple'
+        difficulty: 'elaborate'
       },
       {
-        id: 'simple-animal',
+        id: 'nihilistic-math',
+        type: 'math',
+        question: 'If nothing matters, what is 5 × 0?',
+        instruction: 'Consider the philosophical implications',
+        correctAnswer: 0,
+        difficulty: 'elaborate'
+      },
+      {
+        id: 'language-confusion',
         type: 'text-input',
-        question: 'What sound does a cow make?',
-        instruction: 'Type the sound',
-        correctAnswer: 'moo',
-        difficulty: 'simple'
-      },
-      {
-        id: 'simple-count',
-        type: 'math',
-        question: 'How many fingers are on one hand?',
-        instruction: 'Enter the number',
-        correctAnswer: 5,
-        difficulty: 'simple'
-      },
-      {
-        id: 'simple-yes-no',
-        type: 'button-selection',
-        question: 'Is the sky blue?',
-        instruction: 'Choose your answer',
-        options: [
-          { id: 'yes', text: 'Yes', correct: true },
-          { id: 'no', text: 'No', correct: false }
-        ],
-        difficulty: 'simple'
+        question: 'Translate "captcha" into binary and then to emoji',
+        instruction: 'Final answer should be emoji only',
+        correctAnswer: '🤖',
+        difficulty: 'elaborate'
       }
     ]
   }

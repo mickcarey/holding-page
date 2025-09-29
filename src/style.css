@@ -15,6 +15,7 @@
 
 body {
   margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +23,7 @@ body {
   background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab, #9b59b6, #f39c12, #e74c3c, #2ecc71);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 #app {

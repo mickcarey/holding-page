@@ -1,5 +1,121 @@
 import './style.css'
 
+interface UserStats {
+  version: string
+  created: string
+  lastUpdated: string
+  session: {
+    startTime: string
+    totalDuration: number
+    isActive: boolean
+  }
+  lifetime: {
+    totalTimeSpent: number
+    totalSessions: number
+    firstVisit: string
+  }
+  captcha: {
+    overall: CaptchaStats
+    session: CaptchaStats
+    byDifficulty: {
+      simple: CaptchaStats
+      elaborate: CaptchaStats
+    }
+    favoriteChallenge: string | null
+    worstChallenge: string | null
+  }
+  modalPrompts: {
+    overall: ModalPromptStats
+    session: ModalPromptStats
+    doubleNegatives: PromptTypeStats
+    tripleNegatives: PromptTypeStats
+  }
+  socialNavigation: {
+    overall: SocialNavigationStats
+    session: SocialNavigationStats
+    byPlatform: {
+      linkedin: PlatformStats
+      github: PlatformStats
+      facebook: PlatformStats
+      instagram: PlatformStats
+    }
+  }
+  interactions: {
+    desktop: DesktopInteractionStats
+    mobile: MobileInteractionStats
+  }
+  quirkyStats: {
+    easterEggsFound: number
+    consoleSingsUsed: number
+    buttonSwapsWitnessed: number
+    confettiCelebrations: number
+    gesturesCompleted: number
+    totalFrustrationPoints: number
+    patienceScore: number
+    mostPersistentSession: number
+  }
+}
+
+interface CaptchaStats {
+  shown: number
+  attempts: number
+  successful: number
+  failed: number
+  refreshes: number
+  averageAttempts: number
+  successRate: number
+}
+
+interface ModalPromptStats {
+  shown: number
+  completed: number
+  cancelled: number
+  completionRate: number
+}
+
+interface PromptTypeStats {
+  shown: number
+  correctlyNavigated: number
+  successRate: number
+}
+
+interface SocialNavigationStats {
+  attempts: number
+  successful: number
+  cancelled: number
+  successRate: number
+  averageModalSteps: number
+}
+
+interface PlatformStats {
+  attempts: number
+  successful: number
+  cancelled: number
+  modalsCancelled: number
+  captchasFailed: number
+  totalTimeToComplete: number
+  averageTimeToComplete: number
+  fastestCompletion: number
+  successRate: number
+}
+
+interface DesktopInteractionStats {
+  buttonDodges: number
+  dodgingPeriods: number
+  averageDodgesPerPeriod: number
+  patienceShown: number
+}
+
+interface MobileInteractionStats {
+  gesturesCompleted: number
+  swipeUp: number
+  swipeDown: number
+  longPress: number
+  multiTap: number
+  easterEggsTriggered: number
+  subtitleChanges: number
+}
+
 interface GestureHint {
   type: 'text' | 'animation'
   content: string
@@ -587,6 +703,565 @@ class GestureManager {
   }
 }
 
+class StatsManager {
+  private static readonly STORAGE_KEY = 'holding-page-stats'
+  private static readonly CURRENT_VERSION = '1.0.0'
+  private stats: UserStats
+  private lastUpdateTime: number
+  private updateInterval: number | null = null
+
+  constructor() {
+    this.lastUpdateTime = Date.now()
+    this.stats = this.loadStats()
+    this.startSession()
+    this.setupPeriodicUpdates()
+    this.setupVisibilityHandlers()
+  }
+
+  private loadStats(): UserStats {
+    try {
+      const stored = localStorage.getItem(StatsManager.STORAGE_KEY)
+      if (stored) {
+        const data = JSON.parse(stored)
+        if (data.version === StatsManager.CURRENT_VERSION) {
+          this.resetSessionStats(data)
+          return data
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load stats from localStorage:', error)
+    }
+
+    return this.createDefaultStats()
+  }
+
+  private createDefaultStats(): UserStats {
+    const now = new Date().toISOString()
+    return {
+      version: StatsManager.CURRENT_VERSION,
+      created: now,
+      lastUpdated: now,
+      session: {
+        startTime: now,
+        totalDuration: 0,
+        isActive: true
+      },
+      lifetime: {
+        totalTimeSpent: 0,
+        totalSessions: 0,
+        firstVisit: now
+      },
+      captcha: {
+        overall: this.createEmptyCaptchaStats(),
+        session: this.createEmptyCaptchaStats(),
+        byDifficulty: {
+          simple: this.createEmptyCaptchaStats(),
+          elaborate: this.createEmptyCaptchaStats()
+        },
+        favoriteChallenge: null,
+        worstChallenge: null
+      },
+      modalPrompts: {
+        overall: this.createEmptyModalPromptStats(),
+        session: this.createEmptyModalPromptStats(),
+        doubleNegatives: this.createEmptyPromptTypeStats(),
+        tripleNegatives: this.createEmptyPromptTypeStats()
+      },
+      socialNavigation: {
+        overall: this.createEmptySocialNavigationStats(),
+        session: this.createEmptySocialNavigationStats(),
+        byPlatform: {
+          linkedin: this.createEmptyPlatformStats(),
+          github: this.createEmptyPlatformStats(),
+          facebook: this.createEmptyPlatformStats(),
+          instagram: this.createEmptyPlatformStats()
+        }
+      },
+      interactions: {
+        desktop: this.createEmptyDesktopInteractionStats(),
+        mobile: this.createEmptyMobileInteractionStats()
+      },
+      quirkyStats: {
+        easterEggsFound: 0,
+        consoleSingsUsed: 0,
+        buttonSwapsWitnessed: 0,
+        confettiCelebrations: 0,
+        gesturesCompleted: 0,
+        totalFrustrationPoints: 0,
+        patienceScore: 100,
+        mostPersistentSession: 0
+      }
+    }
+  }
+
+  private createEmptyCaptchaStats(): CaptchaStats {
+    return {
+      shown: 0,
+      attempts: 0,
+      successful: 0,
+      failed: 0,
+      refreshes: 0,
+      averageAttempts: 0,
+      successRate: 0
+    }
+  }
+
+  private createEmptyModalPromptStats(): ModalPromptStats {
+    return {
+      shown: 0,
+      completed: 0,
+      cancelled: 0,
+      completionRate: 0
+    }
+  }
+
+  private createEmptyPromptTypeStats(): PromptTypeStats {
+    return {
+      shown: 0,
+      correctlyNavigated: 0,
+      successRate: 0
+    }
+  }
+
+  private createEmptySocialNavigationStats(): SocialNavigationStats {
+    return {
+      attempts: 0,
+      successful: 0,
+      cancelled: 0,
+      successRate: 0,
+      averageModalSteps: 0
+    }
+  }
+
+  private createEmptyPlatformStats(): PlatformStats {
+    return {
+      attempts: 0,
+      successful: 0,
+      cancelled: 0,
+      modalsCancelled: 0,
+      captchasFailed: 0,
+      totalTimeToComplete: 0,
+      averageTimeToComplete: 0,
+      fastestCompletion: 0,
+      successRate: 0
+    }
+  }
+
+  private createEmptyDesktopInteractionStats(): DesktopInteractionStats {
+    return {
+      buttonDodges: 0,
+      dodgingPeriods: 0,
+      averageDodgesPerPeriod: 0,
+      patienceShown: 0
+    }
+  }
+
+  private createEmptyMobileInteractionStats(): MobileInteractionStats {
+    return {
+      gesturesCompleted: 0,
+      swipeUp: 0,
+      swipeDown: 0,
+      longPress: 0,
+      multiTap: 0,
+      easterEggsTriggered: 0,
+      subtitleChanges: 0
+    }
+  }
+
+  private resetSessionStats(data: UserStats): void {
+    data.session = {
+      startTime: new Date().toISOString(),
+      totalDuration: 0,
+      isActive: true
+    }
+    data.captcha.session = this.createEmptyCaptchaStats()
+    data.modalPrompts.session = this.createEmptyModalPromptStats()
+    data.socialNavigation.session = this.createEmptySocialNavigationStats()
+  }
+
+  private startSession(): void {
+    this.stats.lifetime.totalSessions++
+    this.stats.session.startTime = new Date().toISOString()
+    this.stats.session.isActive = true
+    this.saveStats()
+  }
+
+  private setupPeriodicUpdates(): void {
+    this.updateInterval = window.setInterval(() => {
+      this.updateSessionDuration()
+    }, 1000)
+  }
+
+  private setupVisibilityHandlers(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.stats.session.isActive = false
+        this.updateSessionDuration()
+      } else {
+        this.stats.session.isActive = true
+        this.lastUpdateTime = Date.now()
+      }
+    })
+
+    window.addEventListener('beforeunload', () => {
+      this.updateSessionDuration()
+      this.saveStats()
+    })
+  }
+
+  private updateSessionDuration(): void {
+    if (!this.stats.session.isActive) return
+
+    const now = Date.now()
+    const elapsed = now - this.lastUpdateTime
+    this.stats.session.totalDuration += elapsed
+    this.stats.lifetime.totalTimeSpent += elapsed
+
+    if (this.stats.session.totalDuration > this.stats.quirkyStats.mostPersistentSession) {
+      this.stats.quirkyStats.mostPersistentSession = this.stats.session.totalDuration
+    }
+
+    this.lastUpdateTime = now
+    this.stats.lastUpdated = new Date().toISOString()
+  }
+
+  public trackCaptchaShown(_challengeId: string, difficulty: 'simple' | 'elaborate'): void {
+    this.stats.captcha.overall.shown++
+    this.stats.captcha.session.shown++
+    this.stats.captcha.byDifficulty[difficulty].shown++
+    this.saveStats()
+  }
+
+  public trackCaptchaAttempt(_challengeId: string, difficulty: 'simple' | 'elaborate', success: boolean, attempts: number): void {
+    this.stats.captcha.overall.attempts++
+    this.stats.captcha.session.attempts++
+    this.stats.captcha.byDifficulty[difficulty].attempts++
+
+    if (success) {
+      this.stats.captcha.overall.successful++
+      this.stats.captcha.session.successful++
+      this.stats.captcha.byDifficulty[difficulty].successful++
+    } else {
+      this.stats.captcha.overall.failed++
+      this.stats.captcha.session.failed++
+      this.stats.captcha.byDifficulty[difficulty].failed++
+      this.stats.quirkyStats.totalFrustrationPoints += attempts
+    }
+
+    this.updateCaptchaAverages()
+    this.saveStats()
+  }
+
+  public trackCaptchaRefresh(_challengeId: string): void {
+    this.stats.captcha.overall.refreshes++
+    this.stats.captcha.session.refreshes++
+    this.stats.quirkyStats.totalFrustrationPoints += 2
+    this.saveStats()
+  }
+
+  public trackModalPromptShown(step: number, isTripleNegative?: boolean): void {
+    this.stats.modalPrompts.overall.shown++
+    this.stats.modalPrompts.session.shown++
+
+    if (step === 1) {
+      if (isTripleNegative) {
+        this.stats.modalPrompts.tripleNegatives.shown++
+      } else {
+        this.stats.modalPrompts.doubleNegatives.shown++
+      }
+    }
+
+    this.saveStats()
+  }
+
+  public trackModalPromptResult(step: number, completed: boolean, isTripleNegative?: boolean, wasNavigatedCorrectly?: boolean): void {
+    if (completed) {
+      this.stats.modalPrompts.overall.completed++
+      this.stats.modalPrompts.session.completed++
+    } else {
+      this.stats.modalPrompts.overall.cancelled++
+      this.stats.modalPrompts.session.cancelled++
+      this.stats.quirkyStats.totalFrustrationPoints += 5
+    }
+
+    if (step === 1 && wasNavigatedCorrectly !== undefined) {
+      if (isTripleNegative) {
+        if (wasNavigatedCorrectly) this.stats.modalPrompts.tripleNegatives.correctlyNavigated++
+      } else {
+        if (wasNavigatedCorrectly) this.stats.modalPrompts.doubleNegatives.correctlyNavigated++
+      }
+    }
+
+    this.updateModalPromptAverages()
+    this.saveStats()
+  }
+
+  public trackSocialNavigationAttempt(platform: string): void {
+    this.stats.socialNavigation.overall.attempts++
+    this.stats.socialNavigation.session.attempts++
+
+    const platformStats = this.stats.socialNavigation.byPlatform[platform as keyof typeof this.stats.socialNavigation.byPlatform]
+    if (platformStats) {
+      platformStats.attempts++
+    }
+
+    this.saveStats()
+  }
+
+  public trackSocialNavigationSuccess(platform: string, _modalSteps: number, timeToComplete: number): void {
+    this.stats.socialNavigation.overall.successful++
+    this.stats.socialNavigation.session.successful++
+    this.stats.quirkyStats.confettiCelebrations++
+
+    const platformStats = this.stats.socialNavigation.byPlatform[platform as keyof typeof this.stats.socialNavigation.byPlatform]
+    if (platformStats) {
+      platformStats.successful++
+      platformStats.totalTimeToComplete += timeToComplete
+
+      if (platformStats.fastestCompletion === 0 || timeToComplete < platformStats.fastestCompletion) {
+        platformStats.fastestCompletion = timeToComplete
+      }
+    }
+
+    this.updateSocialNavigationAverages()
+    this.saveStats()
+  }
+
+  public trackSocialNavigationCancel(platform: string): void {
+    this.stats.socialNavigation.overall.cancelled++
+    this.stats.socialNavigation.session.cancelled++
+
+    const platformStats = this.stats.socialNavigation.byPlatform[platform as keyof typeof this.stats.socialNavigation.byPlatform]
+    if (platformStats) {
+      platformStats.cancelled++
+      platformStats.modalsCancelled++
+    }
+
+    this.updateSocialNavigationAverages()
+    this.saveStats()
+  }
+
+  public trackButtonDodge(_platform: string): void {
+    this.stats.interactions.desktop.buttonDodges++
+    this.saveStats()
+  }
+
+  public trackDodgingPeriod(patienceShown: boolean): void {
+    this.stats.interactions.desktop.dodgingPeriods++
+
+    if (patienceShown) {
+      this.stats.interactions.desktop.patienceShown++
+      this.stats.quirkyStats.patienceScore += 5
+    } else {
+      this.stats.quirkyStats.patienceScore = Math.max(0, this.stats.quirkyStats.patienceScore - 2)
+    }
+
+    this.updateDesktopInteractionAverages()
+    this.saveStats()
+  }
+
+  public trackMobileGesture(gestureType: string): void {
+    this.stats.interactions.mobile.gesturesCompleted++
+    this.stats.quirkyStats.gesturesCompleted++
+
+    switch (gestureType) {
+      case 'swipe-up':
+        this.stats.interactions.mobile.swipeUp++
+        break
+      case 'swipe-down':
+        this.stats.interactions.mobile.swipeDown++
+        this.stats.interactions.mobile.subtitleChanges++
+        break
+      case 'long-press':
+        this.stats.interactions.mobile.longPress++
+        this.stats.interactions.mobile.easterEggsTriggered++
+        this.stats.quirkyStats.easterEggsFound++
+        break
+      case 'multi-tap':
+        this.stats.interactions.mobile.multiTap++
+        break
+    }
+
+    this.saveStats()
+  }
+
+  public trackEasterEgg(type: string): void {
+    this.stats.quirkyStats.easterEggsFound++
+
+    if (type === 'console-sing') {
+      this.stats.quirkyStats.consoleSingsUsed++
+    }
+
+    this.saveStats()
+  }
+
+  public trackButtonSwap(): void {
+    this.stats.quirkyStats.buttonSwapsWitnessed++
+    this.saveStats()
+  }
+
+  private updateCaptchaAverages(): void {
+    const updateCaptchaStats = (stats: CaptchaStats) => {
+      stats.averageAttempts = stats.shown > 0 ? stats.attempts / stats.shown : 0
+      stats.successRate = stats.attempts > 0 ? (stats.successful / stats.attempts) * 100 : 0
+    }
+
+    updateCaptchaStats(this.stats.captcha.overall)
+    updateCaptchaStats(this.stats.captcha.session)
+    updateCaptchaStats(this.stats.captcha.byDifficulty.simple)
+    updateCaptchaStats(this.stats.captcha.byDifficulty.elaborate)
+  }
+
+  private updateModalPromptAverages(): void {
+    const updateModalStats = (stats: ModalPromptStats) => {
+      stats.completionRate = stats.shown > 0 ? (stats.completed / stats.shown) * 100 : 0
+    }
+
+    updateModalStats(this.stats.modalPrompts.overall)
+    updateModalStats(this.stats.modalPrompts.session)
+
+    const updatePromptTypeStats = (stats: PromptTypeStats) => {
+      stats.successRate = stats.shown > 0 ? (stats.correctlyNavigated / stats.shown) * 100 : 0
+    }
+
+    updatePromptTypeStats(this.stats.modalPrompts.doubleNegatives)
+    updatePromptTypeStats(this.stats.modalPrompts.tripleNegatives)
+  }
+
+  private updateSocialNavigationAverages(): void {
+    const updateSocialStats = (stats: SocialNavigationStats) => {
+      stats.successRate = stats.attempts > 0 ? (stats.successful / stats.attempts) * 100 : 0
+    }
+
+    updateSocialStats(this.stats.socialNavigation.overall)
+    updateSocialStats(this.stats.socialNavigation.session)
+
+    Object.values(this.stats.socialNavigation.byPlatform).forEach(platformStats => {
+      platformStats.successRate = platformStats.attempts > 0 ? (platformStats.successful / platformStats.attempts) * 100 : 0
+      platformStats.averageTimeToComplete = platformStats.successful > 0 ? platformStats.totalTimeToComplete / platformStats.successful : 0
+    })
+  }
+
+  private updateDesktopInteractionAverages(): void {
+    const desktop = this.stats.interactions.desktop
+    desktop.averageDodgesPerPeriod = desktop.dodgingPeriods > 0 ? desktop.buttonDodges / desktop.dodgingPeriods : 0
+  }
+
+  public getStats(): UserStats {
+    this.updateSessionDuration()
+    return { ...this.stats }
+  }
+
+  public getFormattedStats(): any {
+    const stats = this.getStats()
+
+    return {
+      session: {
+        duration: this.formatDuration(stats.session.totalDuration),
+        active: stats.session.isActive
+      },
+      lifetime: {
+        totalTime: this.formatDuration(stats.lifetime.totalTimeSpent),
+        sessions: stats.lifetime.totalSessions,
+        firstVisit: new Date(stats.lifetime.firstVisit).toLocaleDateString()
+      },
+      captcha: {
+        overall: {
+          shown: stats.captcha.overall.shown,
+          successRate: `${stats.captcha.overall.successRate.toFixed(1)}%`,
+          averageAttempts: stats.captcha.overall.averageAttempts.toFixed(1)
+        },
+        session: {
+          shown: stats.captcha.session.shown,
+          successRate: `${stats.captcha.session.successRate.toFixed(1)}%`
+        }
+      },
+      social: {
+        overall: {
+          attempts: stats.socialNavigation.overall.attempts,
+          successful: stats.socialNavigation.overall.successful,
+          successRate: `${stats.socialNavigation.overall.successRate.toFixed(1)}%`
+        },
+        byPlatform: Object.entries(stats.socialNavigation.byPlatform).map(([platform, data]) => ({
+          platform,
+          attempts: data.attempts,
+          successful: data.successful,
+          successRate: `${data.successRate.toFixed(1)}%`,
+          averageTime: this.formatDuration(data.averageTimeToComplete),
+          fastestTime: this.formatDuration(data.fastestCompletion)
+        }))
+      },
+      interactions: {
+        desktop: {
+          totalDodges: stats.interactions.desktop.buttonDodges,
+          dodgingPeriods: stats.interactions.desktop.dodgingPeriods,
+          averageDodges: stats.interactions.desktop.averageDodgesPerPeriod.toFixed(1),
+          patienceShown: stats.interactions.desktop.patienceShown
+        },
+        mobile: {
+          totalGestures: stats.interactions.mobile.gesturesCompleted,
+          swipeUp: stats.interactions.mobile.swipeUp,
+          swipeDown: stats.interactions.mobile.swipeDown,
+          longPress: stats.interactions.mobile.longPress,
+          multiTap: stats.interactions.mobile.multiTap
+        }
+      },
+      quirky: {
+        easterEggs: stats.quirkyStats.easterEggsFound,
+        confetti: stats.quirkyStats.confettiCelebrations,
+        frustration: stats.quirkyStats.totalFrustrationPoints,
+        patience: stats.quirkyStats.patienceScore,
+        longestSession: this.formatDuration(stats.quirkyStats.mostPersistentSession)
+      }
+    }
+  }
+
+  private formatDuration(milliseconds: number): string {
+    const seconds = Math.floor(milliseconds / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+
+    if (hours > 0) {
+      return `${hours}h ${minutes % 60}m ${seconds % 60}s`
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s`
+    } else {
+      return `${seconds}s`
+    }
+  }
+
+  private saveStats(): void {
+    try {
+      localStorage.setItem(StatsManager.STORAGE_KEY, JSON.stringify(this.stats))
+    } catch (error) {
+      console.warn('Failed to save stats to localStorage:', error)
+    }
+  }
+
+  public resetStats(): void {
+    // Clear stats from localStorage
+    localStorage.removeItem(StatsManager.STORAGE_KEY)
+
+    // Create fresh stats
+    this.stats = this.createDefaultStats()
+
+    // Start a new session
+    this.startSession()
+
+    // Save the new stats
+    this.saveStats()
+  }
+
+  public cleanup(): void {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval)
+      this.updateInterval = null
+    }
+    this.updateSessionDuration()
+    this.saveStats()
+  }
+}
+
 class HoldingPage {
   private isMobile: boolean
   private dodgeTimeout: number = 10000
@@ -597,18 +1272,30 @@ class HoldingPage {
   private gestureManager: GestureManager | null = null
   private captchaManager: CaptchaManager = new CaptchaManager()
   private currentCaptcha: CaptchaChallenge | null = null
+  private statsManager: StatsManager = new StatsManager()
+  private sessionStartTime: number = Date.now()
   private a = atob('c2luZ0Zvck1l')
   private b = atob('c2luZyBmb3IgeW91')
   private c = atob('bXVzaWNhbCBwZXJmb3JtYW5jZQ==')
   private d = atob('TXVzaWNhbCBQZXJmb3JtYW5jZQ==')
+  private hasCompletedSocialInteraction: boolean = false
 
   constructor() {
     this.isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+    const existingStats = localStorage.getItem('holding-page-stats');
+    const stats = JSON.parse(existingStats!);
+    this.hasCompletedSocialInteraction = stats.socialNavigation.overall.attempts > 0;
+
     this.init()
     this.setupConsoleEasterEgg()
 
     if (this.isMobile) {
       this.setupGestureSystem()
+    }
+
+    if (this.hasCompletedSocialInteraction) {
+      this.createStatsButton()
     }
   }
 
@@ -851,13 +1538,15 @@ class HoldingPage {
         this.isDodging = false
         this.dodgingComplete = true
 
-        // Track end of dodging period
+        // Track end of dodging period and patience shown
         this.trackEvent('Button Dodging', 'Completed', platform)
+        this.statsManager.trackDodgingPeriod(true) // User showed patience and waited
       }, this.dodgeTimeout)
     }
 
     // Track each dodge
     this.trackEvent('Button Dodging', 'Dodge', platform)
+    this.statsManager.trackButtonDodge(platform || 'unknown')
 
     const maxX = window.innerWidth - button.offsetWidth - 40
     const maxY = window.innerHeight - button.offsetHeight - 40
@@ -875,6 +1564,10 @@ class HoldingPage {
     if (this.dodgingComplete) {
       // Track social button click on desktop
       this.trackEvent('Social Button', 'Click', `${platform} - Desktop`)
+
+      // Track social navigation attempt with stats manager
+      this.statsManager.trackSocialNavigationAttempt(platform)
+
       this.modalStep = 0
       this.showModal(platform)
       this.swapButtonContent()
@@ -902,6 +1595,10 @@ class HoldingPage {
     // Track modal step
     const stepNames = ['Initial', 'Second Confirmation', 'Third Warning', 'Final Decision']
     this.trackEvent('Confirmation Modal', 'Step Shown', `${platform} - ${stepNames[this.modalStep]}`)
+
+    // Track modal prompt shown with stats manager
+    const isTripleNegative = this.modalStep === 1 && Math.random() < 0.5
+    this.statsManager.trackModalPromptShown(this.modalStep, isTripleNegative)
 
     const messages = this.getModalMessages(platform)
 
@@ -939,9 +1636,12 @@ class HoldingPage {
       document.getElementById('modal-btn-1')!.addEventListener('click', () => {
         if (buttonConfig.leftButton.continuesFlow) {
           this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
+          this.statsManager.trackModalPromptResult(this.modalStep, true, false, true)
           this.handleModalYes(platform)
         } else {
           this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
+          this.statsManager.trackModalPromptResult(this.modalStep, false, false, false)
+          this.statsManager.trackSocialNavigationCancel(platform)
           this.closeModal()
         }
       })
@@ -949,9 +1649,12 @@ class HoldingPage {
       document.getElementById('modal-btn-2')!.addEventListener('click', () => {
         if (buttonConfig.rightButton.continuesFlow) {
           this.trackEvent('Confirmation Modal', 'Continue', `${platform} - Step ${this.modalStep + 1}`)
+          this.statsManager.trackModalPromptResult(this.modalStep, true, false, true)
           this.handleModalYes(platform)
         } else {
           this.trackEvent('Confirmation Modal', 'Cancelled', `${platform} - Step ${this.modalStep + 1}`)
+          this.statsManager.trackModalPromptResult(this.modalStep, false, false, false)
+          this.statsManager.trackSocialNavigationCancel(platform)
           this.closeModal()
         }
       })
@@ -1171,6 +1874,9 @@ class HoldingPage {
 
     this.trackEvent('CAPTCHA', 'Shown', `${platform} - ${this.currentCaptcha.id}`)
 
+    // Track captcha shown with stats manager
+    this.statsManager.trackCaptchaShown(this.currentCaptcha.id, this.currentCaptcha.difficulty || 'simple')
+
     const modal = document.getElementById('modal')!
 
     const captchaHtml = this.captchaManager.renderChallenge(this.currentCaptcha)
@@ -1199,6 +1905,9 @@ class HoldingPage {
     if (captchaRefreshBtn) {
       captchaRefreshBtn.addEventListener('click', () => {
         this.trackEvent('CAPTCHA', 'Refresh', `${platform} - ${this.currentCaptcha?.id}`)
+        if (this.currentCaptcha) {
+          this.statsManager.trackCaptchaRefresh(this.currentCaptcha.id)
+        }
         this.showCaptcha(platform)
       })
     }
@@ -1236,6 +1945,7 @@ class HoldingPage {
 
     if (result.success) {
       this.trackEvent('CAPTCHA', 'Success', `${platform} - ${this.currentCaptcha.id} - Attempts: ${result.attempts}`)
+      this.statsManager.trackCaptchaAttempt(this.currentCaptcha.id, this.currentCaptcha.difficulty || 'simple', true, result.attempts)
       this.modalStep = 3 // Jump directly to final congratulations step
 
       setTimeout(() => {
@@ -1243,6 +1953,7 @@ class HoldingPage {
       }, 500)
     } else {
       this.trackEvent('CAPTCHA', 'Failed', `${platform} - ${this.currentCaptcha.id} - Attempt: ${result.attempts}`)
+      this.statsManager.trackCaptchaAttempt(this.currentCaptcha.id, this.currentCaptcha.difficulty || 'simple', false, result.attempts)
 
       if (this.captchaManager.hasAttemptsRemaining()) {
         const modal = document.getElementById('modal')!
@@ -1339,6 +2050,9 @@ class HoldingPage {
 
 
   private closeModal(): void {
+    // Track modal cancellation with stats manager
+    this.statsManager.trackSocialNavigationCancel('modal')
+
     document.getElementById('modal-overlay')!.classList.add('hidden')
     document.getElementById('modal')!.classList.add('hidden')
 
@@ -1347,6 +2061,13 @@ class HoldingPage {
     }
 
     this.modalStep = 0
+
+    const existingStats = localStorage.getItem('holding-page-stats');
+    const stats = JSON.parse(existingStats!);
+    this.hasCompletedSocialInteraction = stats.socialNavigation.overall.attempts > 0;
+    if (this.hasCompletedSocialInteraction) {
+      this.createStatsButton()
+    }
   }
 
   private launchConfettiAndNavigate(platform: string): void {
@@ -1424,6 +2145,10 @@ class HoldingPage {
 
     // Track goal completion - user successfully navigated to social platform
     this.trackGoal('Social Navigation Success', platform)
+
+    // Track social navigation success with stats manager
+    const completionTime = Date.now() - this.sessionStartTime
+    this.statsManager.trackSocialNavigationSuccess(platform, this.modalStep + 1, completionTime)
 
     this.dodgingComplete = false;
     window.open(urls[platform as keyof typeof urls], '_blank')
@@ -1623,7 +2348,10 @@ class HoldingPage {
     this.gestureManager.addGesture(multiTapGesture)
   }
 
-  private onGestureCompleted(_gestureId: string): void {
+  private onGestureCompleted(gestureId: string): void {
+    // Track gesture completion with stats manager
+    this.statsManager.trackMobileGesture(gestureId)
+
     setTimeout(() => {
       if (this.gestureManager) {
         this.gestureManager.setRandomActiveGesture()
@@ -1697,6 +2425,326 @@ class HoldingPage {
     // Re-setup event listeners with the new platform assignments
     this.removeEventListeners();
     this.setupEventListeners()
+
+    // Track button swap event
+    this.statsManager.trackButtonSwap()
+  }
+
+  private createStatsButton(): void {
+    // Check if button already exists to avoid duplicates
+    if (document.getElementById('stats-button')) {
+      return
+    }
+
+    const statsButton = document.createElement('button')
+    statsButton.id = 'stats-button'
+    statsButton.className = 'stats-button'
+    statsButton.innerHTML = '📊'
+    statsButton.title = 'View your interaction stats'
+
+    statsButton.addEventListener('click', () => {
+      this.showStatsModal()
+    })
+
+    document.body.appendChild(statsButton)
+  }
+
+  private showStatsModal(): void {
+    const formattedStats = this.statsManager.getFormattedStats()
+
+    const overlay = document.getElementById('modal-overlay')!
+    const modal = document.getElementById('modal')!
+
+    overlay.classList.remove('hidden')
+    modal.classList.remove('hidden')
+
+    if (this.gestureManager) {
+      this.gestureManager.setModalState(true)
+    }
+
+    modal.innerHTML = `
+      <div class="modal-content stats-modal-content">
+        <div class="stats-header">
+          <h2>📊 Your Interaction Stats</h2>
+          <button id="stats-close-btn" class="stats-close-btn">×</button>
+        </div>
+
+        <div class="stats-tabs">
+          <button class="stats-tab-btn active" data-tab="overview">Overview</button>
+          <button class="stats-tab-btn" data-tab="social">Social Navigation</button>
+          <button class="stats-tab-btn" data-tab="captcha">CAPTCHA Challenges</button>
+          <button class="stats-tab-btn" data-tab="interactions">Interactions</button>
+          <button class="stats-tab-btn" data-tab="quirky">Quirky Stats</button>
+        </div>
+
+        <div class="stats-content">
+          <div id="stats-overview" class="stats-tab-content active">
+            <div class="stats-section">
+              <h3>⏱️ Time Spent</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Current Session:</span>
+                  <span class="stat-value">${formattedStats.session.duration}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Total Time:</span>
+                  <span class="stat-value">${formattedStats.lifetime.totalTime}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Total Sessions:</span>
+                  <span class="stat-value">${formattedStats.lifetime.sessions}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">First Visit:</span>
+                  <span class="stat-value">${formattedStats.lifetime.firstVisit}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="stats-section">
+              <h3>🎯 Quick Overview</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Social Attempts:</span>
+                  <span class="stat-value">${formattedStats.social.overall.attempts}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Social Success Rate:</span>
+                  <span class="stat-value">${formattedStats.social.overall.successRate}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">CAPTCHAs Shown:</span>
+                  <span class="stat-value">${formattedStats.captcha.overall.shown}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">CAPTCHA Success Rate:</span>
+                  <span class="stat-value">${formattedStats.captcha.overall.successRate}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="stats-social" class="stats-tab-content">
+            <div class="stats-section">
+              <h3>🌐 Social Navigation Summary</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Total Attempts:</span>
+                  <span class="stat-value">${formattedStats.social.overall.attempts}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Successful:</span>
+                  <span class="stat-value">${formattedStats.social.overall.successful}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Success Rate:</span>
+                  <span class="stat-value">${formattedStats.social.overall.successRate}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">This Session:</span>
+                  <span class="stat-value">${formattedStats.social.session ? `${formattedStats.social.session.attempts} attempts` : '0 attempts'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="stats-section">
+              <h3>📱 Platform Breakdown</h3>
+              <div class="platform-stats">
+                ${formattedStats.social.byPlatform.map((platform: any) => `
+                  <div class="platform-stat-item">
+                    <h4>${platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1)}</h4>
+                    <div class="platform-details">
+                      <span><span class="stat-label">Attempts:</span> <span class="stat-value">${platform.attempts}</span></span>
+                      <span><span class="stat-label">Success:</span> <span class="stat-value">${platform.successful}</span></span>
+                      <span><span class="stat-label">Success Rate:</span> <span class="stat-value">${platform.successRate}</span></span>
+                      <span><span class="stat-label">Avg Time:</span> <span class="stat-value">${platform.averageTime}</span></span>
+                      <span><span class="stat-label">Fastest:</span> <span class="stat-value">${platform.fastestTime}</span></span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div id="stats-captcha" class="stats-tab-content">
+            <div class="stats-section">
+              <h3>🔐 CAPTCHA Challenge Stats</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Total Shown:</span>
+                  <span class="stat-value">${formattedStats.captcha.overall.shown}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Success Rate:</span>
+                  <span class="stat-value">${formattedStats.captcha.overall.successRate}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Average Attempts:</span>
+                  <span class="stat-value">${formattedStats.captcha.overall.averageAttempts}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">This Session:</span>
+                  <span class="stat-value">${formattedStats.captcha.session.shown} shown (${formattedStats.captcha.session.successRate})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="stats-interactions" class="stats-tab-content">
+            <div class="stats-section">
+              <h3>🖱️ Desktop Interactions</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Button Dodges:</span>
+                  <span class="stat-value">${formattedStats.interactions.desktop.totalDodges}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Dodging Periods:</span>
+                  <span class="stat-value">${formattedStats.interactions.desktop.dodgingPeriods}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Avg Dodges/Period:</span>
+                  <span class="stat-value">${formattedStats.interactions.desktop.averageDodges}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Patience Shown:</span>
+                  <span class="stat-value">${formattedStats.interactions.desktop.patienceShown} times</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="stats-quirky" class="stats-tab-content">
+            <div class="stats-section">
+              <h3>🎪 Quirky & Fun Stats</h3>
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Easter Eggs Found:</span>
+                  <span class="stat-value">${formattedStats.quirky.easterEggs}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Confetti Celebrations:</span>
+                  <span class="stat-value">${formattedStats.quirky.confetti}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Frustration Points:</span>
+                  <span class="stat-value">${formattedStats.quirky.frustration}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Patience Score:</span>
+                  <span class="stat-value">${formattedStats.quirky.patience}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Longest Session:</span>
+                  <span class="stat-value">${formattedStats.quirky.longestSession}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-footer">
+          <button id="reset-stats-btn" class="reset-stats-btn">🗑️ Reset All Stats</button>
+        </div>
+      </div>
+    `
+
+    this.setupStatsModalEventListeners()
+  }
+
+  private showResetConfirmation(): void {
+    const modal = document.getElementById('modal')!
+
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>🗑️ Reset All Stats?</h3>
+        <p>This will permanently delete all your interaction statistics and cannot be undone.</p>
+        <p>Are you sure you want to continue?</p>
+        <div class="modal-buttons">
+          <button id="confirm-reset-btn" class="modal-btn primary">Yes, Reset Everything</button>
+          <button id="cancel-reset-btn" class="modal-btn secondary">Cancel</button>
+        </div>
+      </div>
+    `
+
+    // Handle confirmation
+    document.getElementById('confirm-reset-btn')!.addEventListener('click', () => {
+      this.statsManager.resetStats()
+      this.trackEvent('Stats', 'Reset', 'User Confirmed')
+
+      // Show success message
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h3>✅ Stats Reset Complete</h3>
+          <p>All your interaction statistics have been cleared.</p>
+          <p>The stats button will now disappear until you complete another social interaction.</p>
+          <div class="modal-buttons">
+            <button id="reset-complete-btn" class="modal-btn primary">OK</button>
+          </div>
+        </div>
+      `
+
+      document.getElementById('reset-complete-btn')!.addEventListener('click', () => {
+        this.closeModal()
+
+        // Remove stats button for fresh start
+        const statsButton = document.getElementById('stats-button')
+        if (statsButton) {
+          statsButton.remove()
+        }
+
+        this.hasCompletedSocialInteraction = false
+      })
+    })
+
+    // Handle cancellation
+    document.getElementById('cancel-reset-btn')!.addEventListener('click', () => {
+      this.showStatsModal() // Go back to stats modal
+    })
+  }
+
+  private setupStatsModalEventListeners(): void {
+    const closeBtn = document.getElementById('stats-close-btn')
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.closeModal()
+      })
+    }
+
+    const tabBtns = document.querySelectorAll('.stats-tab-btn')
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.target as HTMLButtonElement
+        const tabId = target.getAttribute('data-tab')
+
+        // Remove active class from all tabs and content
+        document.querySelectorAll('.stats-tab-btn').forEach(tab => tab.classList.remove('active'))
+        document.querySelectorAll('.stats-tab-content').forEach(content => content.classList.remove('active'))
+
+        // Add active class to clicked tab and corresponding content
+        target.classList.add('active')
+        const content = document.getElementById(`stats-${tabId}`)
+        if (content) {
+          content.classList.add('active')
+        }
+      })
+    })
+
+    // Reset stats button
+    const resetBtn = document.getElementById('reset-stats-btn')
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        this.showResetConfirmation()
+      })
+    }
+
+    // Close modal when clicking overlay
+    const overlay = document.getElementById('modal-overlay')
+    if (overlay) {
+      overlay.addEventListener('click', () => {
+        this.closeModal()
+      })
+    }
   }
 }
 

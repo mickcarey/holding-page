@@ -52,7 +52,7 @@ class HoldingPage {
     this.hasCompletedSocialInteraction = stats.socialNavigation.overall.attempts > 0;
 
     this.init()
-    // this.setupConsoleEasterEgg()
+    this.setupConsoleEasterEgg()
 
     if (this.isMobile) {
       this.setupGestureSystem()
@@ -843,19 +843,6 @@ class HoldingPage {
     }
 
     this.showCarouselModal()
-  }
-
-  private triggerEasterEgg(): void {
-    this.trackEvent('Mobile Gesture Easter Egg', 'Triggered', 'Long Press')
-
-    const easterEggElement = document.createElement('div')
-    easterEggElement.className = 'mobile-easter-egg'
-    easterEggElement.innerHTML = '🎉✨ You found a secret! ✨🎉'
-    document.body.appendChild(easterEggElement)
-
-    setTimeout(() => {
-      easterEggElement.remove()
-    }, 3000)
   }
 
   private swapButtonContent(): void {

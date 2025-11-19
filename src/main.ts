@@ -90,7 +90,7 @@ class HoldingPage {
   private init(): void {
     const randomMessage = this.getRandomCookingMessage()
     const hintMessage = this.isMobile ? this.getMobileGestureHintMessage() : this.getPlayfulHintMessage()
-    const playfulHint = `<p class="social-hint">${hintMessage}<br><a href="https://about.michaelcarey.com.au" target="_blank" class="about-link">Learn more about me</a></p>`
+    const playfulHint = `<p class="social-hint">${hintMessage}<br><a href="https://michaelcarey.com.au/about" target="_blank" class="about-link">Learn more about me</a></p>`
 
     const socialButtonsHTML = this.isMobile ? '' : `
         <div class="social-links">
